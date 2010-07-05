@@ -1,0 +1,140 @@
+language module Magnolia
+
+
+syntax mix Magnolia/Core + Magnolia/BaseExt // + Magnolia/ErrorRecovery
+
+operations
+
+  resolve: &S -> &S
+  unscope: &S -> &S
+  scope: &S -> &S
+  lookup: Identifier -> Symbol*
+  isVar: Symbol* -> Symbol*
+  isUnique: Symbol* -> Symbol
+  sym: Name, Type -> Symbol
+    
+sugar
+ 
+ (+ E1 "." N "=" E2; +)  -> (; call assign(E1, N:?, E2); ;)
+
+ (+ N "[" Es+ "]" "=" E; +)     -> (; call set_elem(N:?, Es*, E); ;)
+
+
+translate Magnolia <-> Cxx
+
+  (; if E then S1* else S2* end ;) <-> (% if(E) { S1* } else { S2* } %)
+
+  (; while E do S* end ;) <-> (% while(E) { S* } %)
+  
+  // (; let var N : T = E1 in while E2 do S*; S' end ;) <-> (% for(T N = E1; E2; S') { S* } %)
+  
+  (; let var N : T = E; in S* end ;) <-> (% { T N = E; S* } %)
+     
+construct variable Expr:
+
+	sugar
+		(+ N +) <-> (; N:? ;)
+		
+	syntax
+		(: N:T :)
+		
+	patterns
+		var(N, T)
+		
+	rules
+	
+		N --lookup-isVar-isUnique-> sym(N',T')
+		--------------------------------------
+		   (: N:? :) ==> (; N:T ;) /* TODO: N' */
+
+construct procedure Decl:
+
+	rules
+	
+		                         S ==> S'
+		----------------------------------------------------------
+		(: procedure P() { S* } :) ==> (; procedure P() { S'* } ;), contains<P,S'>
+		 
+construct if Stat:
+
+	sugar
+		(+ if E then S* end +) -> (; if E then S* else end ;)
+
+		(+ if(E) { S* } +) <- (; if E then S* else end ;)
+
+		(+ if(E) { S1* } else { S2* } +) <- (; if E then S1* else S2* end ;)
+		
+	syntax
+		(: if E then S1* else S2* end :)
+		
+	patterns
+		cond(E,S1,S2)
+		
+	rules
+	
+							E ==> E'	S1 ==> S1'	S2 ==> S2'
+		------------------------------------------------------------------------
+		(: if E then S1* else S2* end :) ==> (; if E' then S1'* else S2'* end ;)
+		
+
+construct while Stat:
+
+	rules
+	
+						E ==> E'	S ==> S'
+		---------------------------------------------------
+		(: while E do S end :) ==> (; while E' do S' end ;)
+		
+
+/*		
+construct concept Decl:
+
+	rules
+	
+	C --qualify-setContainer-> C'		Ds ==> Ds'
+	----------------------------------------------------- 
+	(: concept C { Ds* } :) ==> (; concept C' { Ds'* } ;)
+	
+	
+construct function Decl:
+
+	rules
+	
+					F --qualify-> F'	Ts ==> Ts'
+		-----------------------------------------------------------
+		(: function F(Vs*:Ts*); :) ==> (; function F'(Vs*:Ts'*); ;)
+			,		contains<$container, $rhs>
+				 
+construct requires Decl:
+
+	rules
+	
+					C ==> C'
+	-----------------------------------------
+	(: requires C :)	==>	(; requires C' ;)
+		,	requires<$container, C'>
+			
+			
+
+rules
+
+	requires<C1, C2>	contains<C2, D>
+	-----------------------------------
+			contains<C1, D>
+
+
+rules
+
+	requires<C1, C2>	satisfies<C2, C3>
+	-------------------------------------
+			satisfies<C1, C3>
+	*/		
+/*  [[ e1 o e2 ]] <-> [|_o_(e1, e2)|]
+
+  [[ o e1 ]]    <-> [|o_(e1)|]
+
+  [[ e[es*] ]]  <-> [|index(e, es*)|]
+
+
+*/
+  

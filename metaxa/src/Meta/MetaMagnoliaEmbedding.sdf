@@ -1,0 +1,365 @@
+module Meta/MetaMagnoliaEmbedding[Ctx SQCtx DQCtx]
+
+exports
+
+context-free syntax
+
+	"(;" Expr[[SQCtx]] ";)"				->	SQuoted[[Ctx]]	{cons("SQExpr"),sortname("Expr"),quotes("single")}
+	"(:" Expr[[DQCtx]] ":)"				->	DQuoted[[Ctx]]	{cons("DQExpr"),sortname("Expr"),quotes("double")}
+	"(:" Expr[[DQCtx]] ":)"				->	Expr[[SQCtx]]	{cons("DQExpr"),sortname("Expr"),quotes("double")}
+	"Expr" "(;" Expr[[SQCtx]] ";)"			->	SQuoted[[Ctx]]	{cons("SQExpr"),sortname("Expr"),quotes("single")}
+	"Expr" "(:" Expr[[DQCtx]] ":)"			->	DQuoted[[Ctx]]	{cons("DQExpr"),sortname("Expr"),quotes("double")}
+	"Expr" "(:" Expr[[DQCtx]] ":)"			->	Expr[[SQCtx]]	{cons("DQExpr"),sortname("Expr"),quotes("double")}
+	"Expr" "*" "(;" {Expr[[SQCtx]] ","}* ";)"		->	SQuoted[[Ctx]]	{cons("SQExpr"),sortname("Expr"),quotes("single"),list}
+	"Expr" "*" "(:" {Expr[[DQCtx]] ","}* ":)"		->	DQuoted[[Ctx]]	{cons("DQExpr"),sortname("Expr"),quotes("double"),list}
+	"Expr" "*" "(:" {Expr[[DQCtx]] ","}* ":)"		->	Expr[[SQCtx]]	{cons("DQExpr"),sortname("Expr"),quotes("double"),list}
+
+	ExprMETAID		->	ExprMetaVar
+	ExprMETAID "*"		-> ExprMetaVarList
+	ExprMETAID "+"		-> ExprMetaVarList
+	ExprMetaVar		->	Expr[[SQCtx]]	{cons("MetaVar"), prefer, category("MetaVar")}
+	ExprMetaVar		->	Expr[[DQCtx]]	{cons("MetaVar"), prefer, category("MetaVar")}
+	ExprMetaVarList		->	Expr[[SQCtx]]	{cons("MetaVar"), prefer, category("MetaVar"),list}
+	ExprMetaVarList		->	Expr[[DQCtx]] {cons("MetaVar"), prefer, category("MetaVar"),list}
+
+	ExprMETAID		-> MXaVar {cons("Expr"), category("MetaVar")}
+	ExprMETAID		-> VarToken {cons("Expr"), category("MetaVar")}
+	ExprMETAID MXaREP	-> ListVarToken	{cons("Expr"),prefer, category("MetaVar")}
+
+	"(;" Stat[[SQCtx]] ";)"				->	SQuoted[[Ctx]]	{cons("SQStat"),sortname("Stat"),quotes("single")}
+	"(:" Stat[[DQCtx]] ":)"				->	DQuoted[[Ctx]]	{cons("DQStat"),sortname("Stat"),quotes("double")}
+	"(:" Stat[[DQCtx]] ":)"				->	Stat[[SQCtx]]	{cons("DQStat"),sortname("Stat"),quotes("double")}
+	"Stat" "(;" Stat[[SQCtx]] ";)"			->	SQuoted[[Ctx]]	{cons("SQStat"),sortname("Stat"),quotes("single")}
+	"Stat" "(:" Stat[[DQCtx]] ":)"			->	DQuoted[[Ctx]]	{cons("DQStat"),sortname("Stat"),quotes("double")}
+	"Stat" "(:" Stat[[DQCtx]] ":)"			->	Stat[[SQCtx]]	{cons("DQStat"),sortname("Stat"),quotes("double")}
+	"Stat" "*" "(;" Stat[[SQCtx]]* ";)"		->	SQuoted[[Ctx]]	{cons("SQStat"),sortname("Stat"),quotes("single"),list}
+	"Stat" "*" "(:" Stat[[DQCtx]]* ":)"		->	DQuoted[[Ctx]]	{cons("DQStat"),sortname("Stat"),quotes("double"),list}
+	"Stat" "*" "(:" Stat[[DQCtx]]* ":)"		->	Stat[[SQCtx]]	{cons("DQStat"),sortname("Stat"),quotes("double"),list}
+
+	StatMETAID		->	StatMetaVar
+	StatMETAID "*"		-> StatMetaVarList
+	StatMETAID "+"		-> StatMetaVarList
+	StatMetaVar		->	Stat[[SQCtx]]	{cons("MetaVar"), prefer, category("MetaVar")}
+	StatMetaVar		->	Stat[[DQCtx]]	{cons("MetaVar"), prefer, category("MetaVar")}
+	StatMetaVarList		->	Stat[[SQCtx]]	{cons("MetaVar"), prefer, category("MetaVar"),list}
+	StatMetaVarList		->	Stat[[DQCtx]] {cons("MetaVar"), prefer, category("MetaVar"),list}
+
+	StatMETAID		-> MXaVar {cons("Stat"), category("MetaVar")}
+	StatMETAID		-> VarToken {cons("Stat"), category("MetaVar")}
+	StatMETAID MXaREP	-> ListVarToken	{cons("Stat"),prefer, category("MetaVar")}
+
+	"(;" Decl[[SQCtx]] ";)"				->	SQuoted[[Ctx]]	{cons("SQDecl"),sortname("Decl"),quotes("single")}
+	"(:" Decl[[DQCtx]] ":)"				->	DQuoted[[Ctx]]	{cons("DQDecl"),sortname("Decl"),quotes("double")}
+	"(:" Decl[[DQCtx]] ":)"				->	Decl[[SQCtx]]	{cons("DQDecl"),sortname("Decl"),quotes("double")}
+	"Decl" "(;" Decl[[SQCtx]] ";)"			->	SQuoted[[Ctx]]	{cons("SQDecl"),sortname("Decl"),quotes("single")}
+	"Decl" "(:" Decl[[DQCtx]] ":)"			->	DQuoted[[Ctx]]	{cons("DQDecl"),sortname("Decl"),quotes("double")}
+	"Decl" "(:" Decl[[DQCtx]] ":)"			->	Decl[[SQCtx]]	{cons("DQDecl"),sortname("Decl"),quotes("double")}
+	"Decl" "*" "(;" Decl[[SQCtx]]* ";)"		->	SQuoted[[Ctx]]	{cons("SQDecl"),sortname("Decl"),quotes("single"),list}
+	"Decl" "*" "(:" Decl[[DQCtx]]* ":)"		->	DQuoted[[Ctx]]	{cons("DQDecl"),sortname("Decl"),quotes("double"),list}
+	"Decl" "*" "(:" Decl[[DQCtx]]* ":)"		->	Decl[[SQCtx]]	{cons("DQDecl"),sortname("Decl"),quotes("double"),list}
+
+	DeclMETAID		->	DeclMetaVar
+	DeclMETAID "*"		-> DeclMetaVarList
+	DeclMETAID "+"		-> DeclMetaVarList
+	DeclMetaVar		->	Decl[[SQCtx]]	{cons("MetaVar"), prefer, category("MetaVar")}
+	DeclMetaVar		->	Decl[[DQCtx]]	{cons("MetaVar"), prefer, category("MetaVar")}
+	DeclMetaVarList		->	Decl[[SQCtx]]	{cons("MetaVar"), prefer, category("MetaVar"),list}
+	DeclMetaVarList		->	Decl[[DQCtx]] {cons("MetaVar"), prefer, category("MetaVar"),list}
+
+	DeclMETAID		-> MXaVar {cons("Decl"), category("MetaVar")}
+	DeclMETAID		-> VarToken {cons("Decl"), category("MetaVar")}
+	DeclMETAID MXaREP	-> ListVarToken	{cons("Decl"),prefer, category("MetaVar")}
+
+	"(;" Type[[SQCtx]] ";)"				->	SQuoted[[Ctx]]	{cons("SQType"),sortname("Type"),quotes("single")}
+	"(:" Type[[DQCtx]] ":)"				->	DQuoted[[Ctx]]	{cons("DQType"),sortname("Type"),quotes("double")}
+	"(:" Type[[DQCtx]] ":)"				->	Type[[SQCtx]]	{cons("DQType"),sortname("Type"),quotes("double")}
+	"Type" "(;" Type[[SQCtx]] ";)"			->	SQuoted[[Ctx]]	{cons("SQType"),sortname("Type"),quotes("single")}
+	"Type" "(:" Type[[DQCtx]] ":)"			->	DQuoted[[Ctx]]	{cons("DQType"),sortname("Type"),quotes("double")}
+	"Type" "(:" Type[[DQCtx]] ":)"			->	Type[[SQCtx]]	{cons("DQType"),sortname("Type"),quotes("double")}
+	"Type" "*" "(;" {Type[[SQCtx]] ","}* ";)"		->	SQuoted[[Ctx]]	{cons("SQType"),sortname("Type"),quotes("single"),list}
+	"Type" "*" "(:" {Type[[DQCtx]] ","}* ":)"		->	DQuoted[[Ctx]]	{cons("DQType"),sortname("Type"),quotes("double"),list}
+	"Type" "*" "(:" {Type[[DQCtx]] ","}* ":)"		->	Type[[SQCtx]]	{cons("DQType"),sortname("Type"),quotes("double"),list}
+
+	TypeMETAID		->	TypeMetaVar
+	TypeMETAID "*"		-> TypeMetaVarList
+	TypeMETAID "+"		-> TypeMetaVarList
+	TypeMetaVar		->	Type[[SQCtx]]	{cons("MetaVar"), prefer, category("MetaVar")}
+	TypeMetaVar		->	Type[[DQCtx]]	{cons("MetaVar"), prefer, category("MetaVar")}
+	TypeMetaVarList		->	Type[[SQCtx]]	{cons("MetaVar"), prefer, category("MetaVar"),list}
+	TypeMetaVarList		->	Type[[DQCtx]] {cons("MetaVar"), prefer, category("MetaVar"),list}
+
+	TypeMETAID		-> MXaVar {cons("Type"), category("MetaVar")}
+	TypeMETAID		-> VarToken {cons("Type"), category("MetaVar")}
+	TypeMETAID MXaREP	-> ListVarToken	{cons("Type"),prefer, category("MetaVar")}
+
+	"(;" Var[[SQCtx]] ";)"				->	SQuoted[[Ctx]]	{cons("SQVar"),sortname("Var"),quotes("single")}
+	"(:" Var[[DQCtx]] ":)"				->	DQuoted[[Ctx]]	{cons("DQVar"),sortname("Var"),quotes("double")}
+	"(:" Var[[DQCtx]] ":)"				->	Var[[SQCtx]]	{cons("DQVar"),sortname("Var"),quotes("double")}
+	"Var" "(;" Var[[SQCtx]] ";)"			->	SQuoted[[Ctx]]	{cons("SQVar"),sortname("Var"),quotes("single")}
+	"Var" "(:" Var[[DQCtx]] ":)"			->	DQuoted[[Ctx]]	{cons("DQVar"),sortname("Var"),quotes("double")}
+	"Var" "(:" Var[[DQCtx]] ":)"			->	Var[[SQCtx]]	{cons("DQVar"),sortname("Var"),quotes("double")}
+	"Var" "*" "(;" {Var[[SQCtx]] ","}* ";)"		->	SQuoted[[Ctx]]	{cons("SQVar"),sortname("Var"),quotes("single"),list}
+	"Var" "*" "(:" {Var[[DQCtx]] ","}* ":)"		->	DQuoted[[Ctx]]	{cons("DQVar"),sortname("Var"),quotes("double"),list}
+	"Var" "*" "(:" {Var[[DQCtx]] ","}* ":)"		->	Var[[SQCtx]]	{cons("DQVar"),sortname("Var"),quotes("double"),list}
+
+	VarMETAID		->	VarMetaVar
+	VarMETAID "*"		-> VarMetaVarList
+	VarMETAID "+"		-> VarMetaVarList
+	VarMetaVar		->	Var[[SQCtx]]	{cons("MetaVar"), prefer, category("MetaVar")}
+	VarMetaVar		->	Var[[DQCtx]]	{cons("MetaVar"), prefer, category("MetaVar")}
+	VarMetaVarList		->	Var[[SQCtx]]	{cons("MetaVar"), prefer, category("MetaVar"),list}
+	VarMetaVarList		->	Var[[DQCtx]] {cons("MetaVar"), prefer, category("MetaVar"),list}
+
+	VarMETAID		-> MXaVar {cons("Var"), category("MetaVar")}
+	VarMETAID		-> VarToken {cons("Var"), category("MetaVar")}
+	VarMETAID MXaREP	-> ListVarToken	{cons("Var"),prefer, category("MetaVar")}
+
+	"(;" Identifier[[SQCtx]] ";)"				->	SQuoted[[Ctx]]	{cons("SQIdentifier"),sortname("Identifier"),quotes("single")}
+	"(:" Identifier[[DQCtx]] ":)"				->	DQuoted[[Ctx]]	{cons("DQIdentifier"),sortname("Identifier"),quotes("double")}
+	"(:" Identifier[[DQCtx]] ":)"				->	Identifier[[SQCtx]]	{cons("DQIdentifier"),sortname("Identifier"),quotes("double")}
+	"Identifier" "(;" Identifier[[SQCtx]] ";)"			->	SQuoted[[Ctx]]	{cons("SQIdentifier"),sortname("Identifier"),quotes("single")}
+	"Identifier" "(:" Identifier[[DQCtx]] ":)"			->	DQuoted[[Ctx]]	{cons("DQIdentifier"),sortname("Identifier"),quotes("double")}
+	"Identifier" "(:" Identifier[[DQCtx]] ":)"			->	Identifier[[SQCtx]]	{cons("DQIdentifier"),sortname("Identifier"),quotes("double")}
+	"Identifier" "*" "(;" {Identifier[[SQCtx]] ","}* ";)"		->	SQuoted[[Ctx]]	{cons("SQIdentifier"),sortname("Identifier"),quotes("single"),list}
+	"Identifier" "*" "(:" {Identifier[[DQCtx]] ","}* ":)"		->	DQuoted[[Ctx]]	{cons("DQIdentifier"),sortname("Identifier"),quotes("double"),list}
+	"Identifier" "*" "(:" {Identifier[[DQCtx]] ","}* ":)"		->	Identifier[[SQCtx]]	{cons("DQIdentifier"),sortname("Identifier"),quotes("double"),list}
+
+	IdentifierMETAID		->	IdentifierMetaVar
+	IdentifierMETAID "*"		-> IdentifierMetaVarList
+	IdentifierMETAID "+"		-> IdentifierMetaVarList
+	IdentifierMetaVar		->	Identifier[[SQCtx]]	{cons("MetaVar"), prefer, category("MetaVar")}
+	IdentifierMetaVar		->	Identifier[[DQCtx]]	{cons("MetaVar"), prefer, category("MetaVar")}
+	IdentifierMetaVarList		->	Identifier[[SQCtx]]	{cons("MetaVar"), prefer, category("MetaVar"),list}
+	IdentifierMetaVarList		->	Identifier[[DQCtx]] {cons("MetaVar"), prefer, category("MetaVar"),list}
+
+	IdentifierMETAID		-> MXaVar {cons("Identifier"), category("MetaVar")}
+	IdentifierMETAID		-> VarToken {cons("Identifier"), category("MetaVar")}
+	IdentifierMETAID MXaREP	-> ListVarToken	{cons("Identifier"),prefer, category("MetaVar")}
+
+	"(;" Name[[SQCtx]] ";)"				->	SQuoted[[Ctx]]	{cons("SQName"),sortname("Name"),quotes("single")}
+	"(:" Name[[DQCtx]] ":)"				->	DQuoted[[Ctx]]	{cons("DQName"),sortname("Name"),quotes("double")}
+	"(:" Name[[DQCtx]] ":)"				->	Name[[SQCtx]]	{cons("DQName"),sortname("Name"),quotes("double")}
+	"Name" "(;" Name[[SQCtx]] ";)"			->	SQuoted[[Ctx]]	{cons("SQName"),sortname("Name"),quotes("single")}
+	"Name" "(:" Name[[DQCtx]] ":)"			->	DQuoted[[Ctx]]	{cons("DQName"),sortname("Name"),quotes("double")}
+	"Name" "(:" Name[[DQCtx]] ":)"			->	Name[[SQCtx]]	{cons("DQName"),sortname("Name"),quotes("double")}
+	"Name" "*" "(;" {Name[[SQCtx]] ","}* ";)"		->	SQuoted[[Ctx]]	{cons("SQName"),sortname("Name"),quotes("single"),list}
+	"Name" "*" "(:" {Name[[DQCtx]] ","}* ":)"		->	DQuoted[[Ctx]]	{cons("DQName"),sortname("Name"),quotes("double"),list}
+	"Name" "*" "(:" {Name[[DQCtx]] ","}* ":)"		->	Name[[SQCtx]]	{cons("DQName"),sortname("Name"),quotes("double"),list}
+
+	NameMETAID		->	NameMetaVar
+	NameMETAID "*"		-> NameMetaVarList
+	NameMETAID "+"		-> NameMetaVarList
+	NameMetaVar		->	Name[[SQCtx]]	{cons("MetaVar"), prefer, category("MetaVar")}
+	NameMetaVar		->	Name[[DQCtx]]	{cons("MetaVar"), prefer, category("MetaVar")}
+	NameMetaVarList		->	Name[[SQCtx]]	{cons("MetaVar"), prefer, category("MetaVar"),list}
+	NameMetaVarList		->	Name[[DQCtx]] {cons("MetaVar"), prefer, category("MetaVar"),list}
+
+	NameMETAID		-> MXaVar {cons("Name"), category("MetaVar")}
+	NameMETAID		-> VarToken {cons("Name"), category("MetaVar")}
+	NameMETAID MXaREP	-> ListVarToken	{cons("Name"),prefer, category("MetaVar")}
+
+	"(;" FunName[[SQCtx]] ";)"				->	SQuoted[[Ctx]]	{cons("SQFunName"),sortname("FunName"),quotes("single")}
+	"(:" FunName[[DQCtx]] ":)"				->	DQuoted[[Ctx]]	{cons("DQFunName"),sortname("FunName"),quotes("double")}
+	"(:" FunName[[DQCtx]] ":)"				->	FunName[[SQCtx]]	{cons("DQFunName"),sortname("FunName"),quotes("double")}
+	"FunName" "(;" FunName[[SQCtx]] ";)"			->	SQuoted[[Ctx]]	{cons("SQFunName"),sortname("FunName"),quotes("single")}
+	"FunName" "(:" FunName[[DQCtx]] ":)"			->	DQuoted[[Ctx]]	{cons("DQFunName"),sortname("FunName"),quotes("double")}
+	"FunName" "(:" FunName[[DQCtx]] ":)"			->	FunName[[SQCtx]]	{cons("DQFunName"),sortname("FunName"),quotes("double")}
+	"FunName" "*" "(;" FunName[[SQCtx]]* ";)"		->	SQuoted[[Ctx]]	{cons("SQFunName"),sortname("FunName"),quotes("single"),list}
+	"FunName" "*" "(:" FunName[[DQCtx]]* ":)"		->	DQuoted[[Ctx]]	{cons("DQFunName"),sortname("FunName"),quotes("double"),list}
+	"FunName" "*" "(:" FunName[[DQCtx]]* ":)"		->	FunName[[SQCtx]]	{cons("DQFunName"),sortname("FunName"),quotes("double"),list}
+
+	FunNameMETAID		->	FunNameMetaVar
+	FunNameMETAID "*"		-> FunNameMetaVarList
+	FunNameMETAID "+"		-> FunNameMetaVarList
+	FunNameMetaVar		->	FunName[[SQCtx]]	{cons("MetaVar"), prefer, category("MetaVar")}
+	FunNameMetaVar		->	FunName[[DQCtx]]	{cons("MetaVar"), prefer, category("MetaVar")}
+	FunNameMetaVarList		->	FunName[[SQCtx]]	{cons("MetaVar"), prefer, category("MetaVar"),list}
+	FunNameMetaVarList		->	FunName[[DQCtx]] {cons("MetaVar"), prefer, category("MetaVar"),list}
+
+	FunNameMETAID		-> MXaVar {cons("FunName"), category("MetaVar")}
+	FunNameMETAID		-> VarToken {cons("FunName"), category("MetaVar")}
+	FunNameMETAID MXaREP	-> ListVarToken	{cons("FunName"),prefer, category("MetaVar")}
+
+	"(;" ProcName[[SQCtx]] ";)"				->	SQuoted[[Ctx]]	{cons("SQProcName"),sortname("ProcName"),quotes("single")}
+	"(:" ProcName[[DQCtx]] ":)"				->	DQuoted[[Ctx]]	{cons("DQProcName"),sortname("ProcName"),quotes("double")}
+	"(:" ProcName[[DQCtx]] ":)"				->	ProcName[[SQCtx]]	{cons("DQProcName"),sortname("ProcName"),quotes("double")}
+	"ProcName" "(;" ProcName[[SQCtx]] ";)"			->	SQuoted[[Ctx]]	{cons("SQProcName"),sortname("ProcName"),quotes("single")}
+	"ProcName" "(:" ProcName[[DQCtx]] ":)"			->	DQuoted[[Ctx]]	{cons("DQProcName"),sortname("ProcName"),quotes("double")}
+	"ProcName" "(:" ProcName[[DQCtx]] ":)"			->	ProcName[[SQCtx]]	{cons("DQProcName"),sortname("ProcName"),quotes("double")}
+	"ProcName" "*" "(;" ProcName[[SQCtx]]* ";)"		->	SQuoted[[Ctx]]	{cons("SQProcName"),sortname("ProcName"),quotes("single"),list}
+	"ProcName" "*" "(:" ProcName[[DQCtx]]* ":)"		->	DQuoted[[Ctx]]	{cons("DQProcName"),sortname("ProcName"),quotes("double"),list}
+	"ProcName" "*" "(:" ProcName[[DQCtx]]* ":)"		->	ProcName[[SQCtx]]	{cons("DQProcName"),sortname("ProcName"),quotes("double"),list}
+
+	ProcNameMETAID		->	ProcNameMetaVar
+	ProcNameMETAID "*"		-> ProcNameMetaVarList
+	ProcNameMETAID "+"		-> ProcNameMetaVarList
+	ProcNameMetaVar		->	ProcName[[SQCtx]]	{cons("MetaVar"), prefer, category("MetaVar")}
+	ProcNameMetaVar		->	ProcName[[DQCtx]]	{cons("MetaVar"), prefer, category("MetaVar")}
+	ProcNameMetaVarList		->	ProcName[[SQCtx]]	{cons("MetaVar"), prefer, category("MetaVar"),list}
+	ProcNameMetaVarList		->	ProcName[[DQCtx]] {cons("MetaVar"), prefer, category("MetaVar"),list}
+
+	ProcNameMETAID		-> MXaVar {cons("ProcName"), category("MetaVar")}
+	ProcNameMETAID		-> VarToken {cons("ProcName"), category("MetaVar")}
+	ProcNameMETAID MXaREP	-> ListVarToken	{cons("ProcName"),prefer, category("MetaVar")}
+
+	"(;" SubClause[[SQCtx]] ";)"				->	SQuoted[[Ctx]]	{cons("SQSubClause"),sortname("SubClause"),quotes("single")}
+	"(:" SubClause[[DQCtx]] ":)"				->	DQuoted[[Ctx]]	{cons("DQSubClause"),sortname("SubClause"),quotes("double")}
+	"(:" SubClause[[DQCtx]] ":)"				->	SubClause[[SQCtx]]	{cons("DQSubClause"),sortname("SubClause"),quotes("double")}
+	"SubClause" "(;" SubClause[[SQCtx]] ";)"			->	SQuoted[[Ctx]]	{cons("SQSubClause"),sortname("SubClause"),quotes("single")}
+	"SubClause" "(:" SubClause[[DQCtx]] ":)"			->	DQuoted[[Ctx]]	{cons("DQSubClause"),sortname("SubClause"),quotes("double")}
+	"SubClause" "(:" SubClause[[DQCtx]] ":)"			->	SubClause[[SQCtx]]	{cons("DQSubClause"),sortname("SubClause"),quotes("double")}
+	"SubClause" "*" "(;" SubClause[[SQCtx]]* ";)"		->	SQuoted[[Ctx]]	{cons("SQSubClause"),sortname("SubClause"),quotes("single"),list}
+	"SubClause" "*" "(:" SubClause[[DQCtx]]* ":)"		->	DQuoted[[Ctx]]	{cons("DQSubClause"),sortname("SubClause"),quotes("double"),list}
+	"SubClause" "*" "(:" SubClause[[DQCtx]]* ":)"		->	SubClause[[SQCtx]]	{cons("DQSubClause"),sortname("SubClause"),quotes("double"),list}
+
+	SubClauseMETAID		->	SubClauseMetaVar
+	SubClauseMETAID "*"		-> SubClauseMetaVarList
+	SubClauseMETAID "+"		-> SubClauseMetaVarList
+	SubClauseMetaVar		->	SubClause[[SQCtx]]	{cons("MetaVar"), prefer, category("MetaVar")}
+	SubClauseMetaVar		->	SubClause[[DQCtx]]	{cons("MetaVar"), prefer, category("MetaVar")}
+	SubClauseMetaVarList		->	SubClause[[SQCtx]]	{cons("MetaVar"), prefer, category("MetaVar"),list}
+	SubClauseMetaVarList		->	SubClause[[DQCtx]] {cons("MetaVar"), prefer, category("MetaVar"),list}
+
+	SubClauseMETAID		-> MXaVar {cons("SubClause"), category("MetaVar")}
+	SubClauseMETAID		-> VarToken {cons("SubClause"), category("MetaVar")}
+	SubClauseMETAID MXaREP	-> ListVarToken	{cons("SubClause"),prefer, category("MetaVar")}
+
+	"(;" ConceptExpr[[SQCtx]] ";)"				->	SQuoted[[Ctx]]	{cons("SQConceptExpr"),sortname("ConceptExpr"),quotes("single")}
+	"(:" ConceptExpr[[DQCtx]] ":)"				->	DQuoted[[Ctx]]	{cons("DQConceptExpr"),sortname("ConceptExpr"),quotes("double")}
+	"(:" ConceptExpr[[DQCtx]] ":)"				->	ConceptExpr[[SQCtx]]	{cons("DQConceptExpr"),sortname("ConceptExpr"),quotes("double")}
+	"ConceptExpr" "(;" ConceptExpr[[SQCtx]] ";)"			->	SQuoted[[Ctx]]	{cons("SQConceptExpr"),sortname("ConceptExpr"),quotes("single")}
+	"ConceptExpr" "(:" ConceptExpr[[DQCtx]] ":)"			->	DQuoted[[Ctx]]	{cons("DQConceptExpr"),sortname("ConceptExpr"),quotes("double")}
+	"ConceptExpr" "(:" ConceptExpr[[DQCtx]] ":)"			->	ConceptExpr[[SQCtx]]	{cons("DQConceptExpr"),sortname("ConceptExpr"),quotes("double")}
+	"ConceptExpr" "*" "(;" ConceptExpr[[SQCtx]]* ";)"		->	SQuoted[[Ctx]]	{cons("SQConceptExpr"),sortname("ConceptExpr"),quotes("single"),list}
+	"ConceptExpr" "*" "(:" ConceptExpr[[DQCtx]]* ":)"		->	DQuoted[[Ctx]]	{cons("DQConceptExpr"),sortname("ConceptExpr"),quotes("double"),list}
+	"ConceptExpr" "*" "(:" ConceptExpr[[DQCtx]]* ":)"		->	ConceptExpr[[SQCtx]]	{cons("DQConceptExpr"),sortname("ConceptExpr"),quotes("double"),list}
+
+	ConceptExprMETAID		->	ConceptExprMetaVar
+	ConceptExprMETAID "*"		-> ConceptExprMetaVarList
+	ConceptExprMETAID "+"		-> ConceptExprMetaVarList
+	ConceptExprMetaVar		->	ConceptExpr[[SQCtx]]	{cons("MetaVar"), prefer, category("MetaVar")}
+	ConceptExprMetaVar		->	ConceptExpr[[DQCtx]]	{cons("MetaVar"), prefer, category("MetaVar")}
+	ConceptExprMetaVarList		->	ConceptExpr[[SQCtx]]	{cons("MetaVar"), prefer, category("MetaVar"),list}
+	ConceptExprMetaVarList		->	ConceptExpr[[DQCtx]] {cons("MetaVar"), prefer, category("MetaVar"),list}
+
+	ConceptExprMETAID		-> MXaVar {cons("ConceptExpr"), category("MetaVar")}
+	ConceptExprMETAID		-> VarToken {cons("ConceptExpr"), category("MetaVar")}
+	ConceptExprMETAID MXaREP	-> ListVarToken	{cons("ConceptExpr"),prefer, category("MetaVar")}
+
+	"(;" ImplExpr[[SQCtx]] ";)"				->	SQuoted[[Ctx]]	{cons("SQImplExpr"),sortname("ImplExpr"),quotes("single")}
+	"(:" ImplExpr[[DQCtx]] ":)"				->	DQuoted[[Ctx]]	{cons("DQImplExpr"),sortname("ImplExpr"),quotes("double")}
+	"(:" ImplExpr[[DQCtx]] ":)"				->	ImplExpr[[SQCtx]]	{cons("DQImplExpr"),sortname("ImplExpr"),quotes("double")}
+	"ImplExpr" "(;" ImplExpr[[SQCtx]] ";)"			->	SQuoted[[Ctx]]	{cons("SQImplExpr"),sortname("ImplExpr"),quotes("single")}
+	"ImplExpr" "(:" ImplExpr[[DQCtx]] ":)"			->	DQuoted[[Ctx]]	{cons("DQImplExpr"),sortname("ImplExpr"),quotes("double")}
+	"ImplExpr" "(:" ImplExpr[[DQCtx]] ":)"			->	ImplExpr[[SQCtx]]	{cons("DQImplExpr"),sortname("ImplExpr"),quotes("double")}
+	"ImplExpr" "*" "(;" ImplExpr[[SQCtx]]* ";)"		->	SQuoted[[Ctx]]	{cons("SQImplExpr"),sortname("ImplExpr"),quotes("single"),list}
+	"ImplExpr" "*" "(:" ImplExpr[[DQCtx]]* ":)"		->	DQuoted[[Ctx]]	{cons("DQImplExpr"),sortname("ImplExpr"),quotes("double"),list}
+	"ImplExpr" "*" "(:" ImplExpr[[DQCtx]]* ":)"		->	ImplExpr[[SQCtx]]	{cons("DQImplExpr"),sortname("ImplExpr"),quotes("double"),list}
+
+	ImplExprMETAID		->	ImplExprMetaVar
+	ImplExprMETAID "*"		-> ImplExprMetaVarList
+	ImplExprMETAID "+"		-> ImplExprMetaVarList
+	ImplExprMetaVar		->	ImplExpr[[SQCtx]]	{cons("MetaVar"), prefer, category("MetaVar")}
+	ImplExprMetaVar		->	ImplExpr[[DQCtx]]	{cons("MetaVar"), prefer, category("MetaVar")}
+	ImplExprMetaVarList		->	ImplExpr[[SQCtx]]	{cons("MetaVar"), prefer, category("MetaVar"),list}
+	ImplExprMetaVarList		->	ImplExpr[[DQCtx]] {cons("MetaVar"), prefer, category("MetaVar"),list}
+
+	ImplExprMETAID		-> MXaVar {cons("ImplExpr"), category("MetaVar")}
+	ImplExprMETAID		-> VarToken {cons("ImplExpr"), category("MetaVar")}
+	ImplExprMETAID MXaREP	-> ListVarToken	{cons("ImplExpr"),prefer, category("MetaVar")}
+
+	"(;" Morphism[[SQCtx]] ";)"				->	SQuoted[[Ctx]]	{cons("SQMorphism"),sortname("Morphism"),quotes("single")}
+	"(:" Morphism[[DQCtx]] ":)"				->	DQuoted[[Ctx]]	{cons("DQMorphism"),sortname("Morphism"),quotes("double")}
+	"(:" Morphism[[DQCtx]] ":)"				->	Morphism[[SQCtx]]	{cons("DQMorphism"),sortname("Morphism"),quotes("double")}
+	"Morphism" "(;" Morphism[[SQCtx]] ";)"			->	SQuoted[[Ctx]]	{cons("SQMorphism"),sortname("Morphism"),quotes("single")}
+	"Morphism" "(:" Morphism[[DQCtx]] ":)"			->	DQuoted[[Ctx]]	{cons("DQMorphism"),sortname("Morphism"),quotes("double")}
+	"Morphism" "(:" Morphism[[DQCtx]] ":)"			->	Morphism[[SQCtx]]	{cons("DQMorphism"),sortname("Morphism"),quotes("double")}
+	"Morphism" "*" "(;" Morphism[[SQCtx]]* ";)"		->	SQuoted[[Ctx]]	{cons("SQMorphism"),sortname("Morphism"),quotes("single"),list}
+	"Morphism" "*" "(:" Morphism[[DQCtx]]* ":)"		->	DQuoted[[Ctx]]	{cons("DQMorphism"),sortname("Morphism"),quotes("double"),list}
+	"Morphism" "*" "(:" Morphism[[DQCtx]]* ":)"		->	Morphism[[SQCtx]]	{cons("DQMorphism"),sortname("Morphism"),quotes("double"),list}
+
+	MorphismMETAID		->	MorphismMetaVar
+	MorphismMETAID "*"		-> MorphismMetaVarList
+	MorphismMETAID "+"		-> MorphismMetaVarList
+	MorphismMetaVar		->	Morphism[[SQCtx]]	{cons("MetaVar"), prefer, category("MetaVar")}
+	MorphismMetaVar		->	Morphism[[DQCtx]]	{cons("MetaVar"), prefer, category("MetaVar")}
+	MorphismMetaVarList		->	Morphism[[SQCtx]]	{cons("MetaVar"), prefer, category("MetaVar"),list}
+	MorphismMetaVarList		->	Morphism[[DQCtx]] {cons("MetaVar"), prefer, category("MetaVar"),list}
+
+	MorphismMETAID		-> MXaVar {cons("Morphism"), category("MetaVar")}
+	MorphismMETAID		-> VarToken {cons("Morphism"), category("MetaVar")}
+	MorphismMETAID MXaREP	-> ListVarToken	{cons("Morphism"),prefer, category("MetaVar")}
+
+	SQuoted[[Ctx]] -> Quoted[[Ctx]]
+	DQuoted[[Ctx]] -> Quoted[[Ctx]]
+
+lexical syntax
+
+	"Expr"[s]*[0-9]*[\']*SUBID? -> ExprMETAID
+	ExprMETAID -> ID[[SQCtx]] {reject}
+	ExprMETAID -> ID[[DQCtx]] {reject}
+	ExprMETAID -> MXaVarID {reject}
+	"Stat"[s]*[0-9]*[\']*SUBID? -> StatMETAID
+	StatMETAID -> ID[[SQCtx]] {reject}
+	StatMETAID -> ID[[DQCtx]] {reject}
+	StatMETAID -> MXaVarID {reject}
+	"Decl"[s]*[0-9]*[\']*SUBID? -> DeclMETAID
+	DeclMETAID -> ID[[SQCtx]] {reject}
+	DeclMETAID -> ID[[DQCtx]] {reject}
+	DeclMETAID -> MXaVarID {reject}
+	"Type"[s]*[0-9]*[\']*SUBID? -> TypeMETAID
+	TypeMETAID -> ID[[SQCtx]] {reject}
+	TypeMETAID -> ID[[DQCtx]] {reject}
+	TypeMETAID -> MXaVarID {reject}
+	"Var"[s]*[0-9]*[\']*SUBID? -> VarMETAID
+	VarMETAID -> ID[[SQCtx]] {reject}
+	VarMETAID -> ID[[DQCtx]] {reject}
+	VarMETAID -> MXaVarID {reject}
+	"Identifier"[s]*[0-9]*[\']*SUBID? -> IdentifierMETAID
+	IdentifierMETAID -> ID[[SQCtx]] {reject}
+	IdentifierMETAID -> ID[[DQCtx]] {reject}
+	IdentifierMETAID -> MXaVarID {reject}
+	"Name"[s]*[0-9]*[\']*SUBID? -> NameMETAID
+	NameMETAID -> ID[[SQCtx]] {reject}
+	NameMETAID -> ID[[DQCtx]] {reject}
+	NameMETAID -> MXaVarID {reject}
+	"FunName"[s]*[0-9]*[\']*SUBID? -> FunNameMETAID
+	FunNameMETAID -> ID[[SQCtx]] {reject}
+	FunNameMETAID -> ID[[DQCtx]] {reject}
+	FunNameMETAID -> MXaVarID {reject}
+	"ProcName"[s]*[0-9]*[\']*SUBID? -> ProcNameMETAID
+	ProcNameMETAID -> ID[[SQCtx]] {reject}
+	ProcNameMETAID -> ID[[DQCtx]] {reject}
+	ProcNameMETAID -> MXaVarID {reject}
+	"SubClause"[s]*[0-9]*[\']*SUBID? -> SubClauseMETAID
+	SubClauseMETAID -> ID[[SQCtx]] {reject}
+	SubClauseMETAID -> ID[[DQCtx]] {reject}
+	SubClauseMETAID -> MXaVarID {reject}
+	"ConceptExpr"[s]*[0-9]*[\']*SUBID? -> ConceptExprMETAID
+	ConceptExprMETAID -> ID[[SQCtx]] {reject}
+	ConceptExprMETAID -> ID[[DQCtx]] {reject}
+	ConceptExprMETAID -> MXaVarID {reject}
+	"ImplExpr"[s]*[0-9]*[\']*SUBID? -> ImplExprMETAID
+	ImplExprMETAID -> ID[[SQCtx]] {reject}
+	ImplExprMETAID -> ID[[DQCtx]] {reject}
+	ImplExprMETAID -> MXaVarID {reject}
+	"Morphism"[s]*[0-9]*[\']*SUBID? -> MorphismMETAID
+	MorphismMETAID -> ID[[SQCtx]] {reject}
+	MorphismMETAID -> ID[[DQCtx]] {reject}
+	MorphismMETAID -> MXaVarID {reject}
+
+lexical restrictions
+
+	ExprMETAID -/- [A-Za-z\'\_0-9]
+	StatMETAID -/- [A-Za-z\'\_0-9]
+	DeclMETAID -/- [A-Za-z\'\_0-9]
+	TypeMETAID -/- [A-Za-z\'\_0-9]
+	VarMETAID -/- [A-Za-z\'\_0-9]
+	IdentifierMETAID -/- [A-Za-z\'\_0-9]
+	NameMETAID -/- [A-Za-z\'\_0-9]
+	FunNameMETAID -/- [A-Za-z\'\_0-9]
+	ProcNameMETAID -/- [A-Za-z\'\_0-9]
+	SubClauseMETAID -/- [A-Za-z\'\_0-9]
+	ConceptExprMETAID -/- [A-Za-z\'\_0-9]
+	ImplExprMETAID -/- [A-Za-z\'\_0-9]
+	MorphismMETAID -/- [A-Za-z\'\_0-9]

@@ -1,0 +1,58 @@
+module Meta/MetaMagnolia
+exports
+
+imports
+	Magnolia/CoreMix[Core]
+	Magnolia/BaseExtMix[Base]
+	%%CxxSophus/CxxSophusMix[Cxx]
+	Meta/MetaMagnoliaEmbedding[Magnolia Core Base]
+	%%Meta/MetaCxxQuotes[Magnolia Core Cxx]
+
+sorts
+	Magnolia Core Base Cxx
+
+%% Quotes
+context-free syntax
+
+  SQuoted[[Magnolia]] -> SQuoted
+  DQuoted[[Magnolia]] -> DQuoted
+ %% TQuoted[[Magnolia]] -> TQuoted
+  Quoted[[Magnolia]] -> Quoted
+
+%% Tokens for new syntax
+context-free syntax
+
+  VarToken	-> MXaToken
+  ListVarToken	-> MXaToken
+
+
+
+  OPID		-> ADDOP		{cons("MetaOp"), prefer, category("MetaVar")}
+  [\_] OPID [\_]	-> ID		{cons("MetaOpBinName"), prefer, category("MetaVar")}
+  OPID		-> NEGOP		{cons("MetaOp"), prefer, category("MetaVar")}
+  OPID [\_]	-> ID	{cons("MetaOpPreName"), prefer, category("MetaVar")}
+
+  "\\" METAVARID -> ID		{cons("Dummy")}
+  "\\" ID -> ID		{cons("Dummy")}
+
+sorts
+   INTID FLTID STRID VARID TYPEID EXPRID STATID DECLID NAMEID MODEID QID FUNID
+   SUBID METAVARID PROCID ATTRID
+
+lexical syntax
+
+   [O][a-z]*[s]*[0-9]*[\']*SUBID? -> OPID
+
+   [A-Z][s]*[0-9]*[\']*SUBID?	-> METAVARID
+
+%%   "\\" ID -> ID
+
+   METAVARID -> ID {reject}
+
+   [\_][A-Za-z][A-Za-z\_\'0-9]* -> SUBID
+
+lexical restrictions
+
+    OPID	-/- [A-Za-z\'0-9]
+    METAVARID	-/- [A-Za-z\_\'0-9]
+

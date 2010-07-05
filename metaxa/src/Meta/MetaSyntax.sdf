@@ -1,0 +1,227 @@
+module Meta/MetaSyntax
+exports
+
+sorts
+	SQuoted DQuoted Quoted
+
+imports
+	Meta/MetaMagnolia
+
+exports
+
+context-free start-symbols
+	MXaProgram
+	MXaID
+	MXaSugarDef
+	MXaSort
+	SQuoted
+
+  %% Basic Expressions
+sorts
+	MXaProgram MXaSection MXaSugarSection MXaCSection
+	DQuoted SQuoted Quoted
+
+context-free syntax
+
+  "language" "module" MXaID MXaSection* -> MXaProgram {cons("MXaProgram")}
+
+  "syntax" "mix" {MXaSDFModule "+"}+	-> MXaSection {cons("MXaSyntaxMix")}
+
+  "sugar" MXaSugarDef*			-> MXaSugarSection {cons("MXaSyntax")}
+
+  "sorts" MXaID+				-> MXaSection	{cons("MXaSorts")}
+  
+  "translate" MXaID MXaArrow MXaID MXaSugarDef* -> MXaSugarSection {cons("MXaXLate")}
+  
+  MXaSugarSection			-> MXaSection
+
+  "operations" MXaOpDecl*		-> MXaSection {cons("MXaOps")}
+
+  "construct" MXaID MXaID ":" MXaCSection+ -> MXaConstruct {cons("MXaConstruct")}
+
+  MXaConstruct				-> MXaSection
+  
+  MXaSugarSection				-> MXaCSection
+
+context-free restrictions
+
+  MXaConstruct -/- [t].[r].[a].[n].[s].[l].[a].[t].[e]
+  MXaConstruct -/- [s].[u].[g].[a].[r]
+  
+%% Sugar definitions
+sorts
+	MXaSugarDef MXaTokenList MXaSynAttrs MXaToken
+
+context-free syntax
+
+  Quoted MXaArrow Quoted		-> MXaSugarDef {cons("MXaSynRule")}
+
+  MXaTokenList MXaArrow Quoted	-> MXaSugarDef {cons("MXaNewSynRule")}
+
+  "(+" MXaToken+ "+)"		-> MXaTokenList {cons("MXaTokenList")}
+
+  "{" {MXaSynAttr ","}* "}"	-> MXaSynAttrs {cons("MXaSynAttrs")}
+
+
+%% Construct Sections
+sorts
+	MXaRuleDef	MXaRuleClause	MXaExpr	MXaTerm
+
+context-free syntax
+
+	"rules" MXaRuleDef+		-> MXaCSection	{cons("MXaResolve")}
+
+	"syntax"	Quoted			-> MXaCSection	{cons("MXaSyntax")}
+
+	"syntax"	MXaTokenList	-> MXaCSection	{cons("MXaSyntaxDef")}
+	
+	"patterns" MXaTerm+		-> MXaCSection	{cons("MXaPatterns")}
+
+
+	MXaRuleClause+ MXaLINE MXaRuleConclusion		-> MXaRuleDef	{cons("MXaRuleDef")}
+
+	MXaExpr MXaTransition MXaExpr		-> MXaRuleClause
+	MXaRel								-> MXaRuleClause
+
+	MXaRuleClause 						-> MXaRuleConclusion
+	MXaRuleClause "," {MXaRel ","}+		-> MXaRuleConclusion
+
+	Quoted				-> MXaExpr
+	MXaTerm				-> MXaExpr
+
+	MXaCons "(" {MXaExpr ","}* ")"	-> MXaTerm
+	MXaVar						-> MXaTerm
+	MXaVar "*"					-> MXaTerm
+	MXaVar "+"					-> MXaTerm
+	MXaExpr ":" MXaExpr			-> MXaTerm
+	MXaStringLiteral			-> MXaTerm
+	
+	MXaCons "<" {MXaExpr ","}* ">"	-> MXaRel 
+
+	"==" {MXaOp "="}+ "=>"	-> MXaTransition {cons("STransition")}
+  	"==>"					-> MXaTransition {cons("STransition")}
+  	"--" {MXaOp "-"}+ "->"		-> MXaTransition {cons("SApplication")}
+
+	MXaCons						-> MXaOp {cons("SOp")}
+	MXaCons "(" {MXaExpr ","}* ")"	-> MXaOp {cons("SOp")}
+
+%% Operations
+sorts
+	MXaOpDecl
+
+context-free syntax
+
+	MXaID ":" {MXaType ","}* "->" MXaType -> MXaOpDecl {cons("MXaOpDecl")}
+
+%% Rascal Variables
+sorts
+	MXaRascalVar MXaRascalListVar
+
+context-free syntax
+
+  "&lt;" MXaID MXaID "&gt;"			-> MXaRascalVar		{cons("RascalVar")}
+  "&lt;" MXaSort MXaID "&gt;"		-> MXaRascalListVar		{cons("RascalListVar")}
+%%  MXaRascalListVar -> MXaRascalVar
+  
+%% SDF non-terminals
+sorts
+	MXaSort MXaVar 
+
+context-free syntax
+
+  %%MXaID -> MXaSort
+  MXaID MXaREP					-> MXaSort
+  "{" MXaID MXaStringLiteral "}" MXaREP	-> MXaSort
+
+  "$" MXaID ":" MXaID "$" 			-> MXaVar			{cons("MXaVar")}
+  MXaVarID							-> MXaVar			{cons("MXaVar")}
+  
+    "\"" MXaString "\"" -> MXaStringLiteral {cons("MXaString")}
+
+lexical syntax
+    ~[\"\\]						-> MXaStringPart
+    "\\" [\\\"nrbfe]				-> MXaStringPart
+    "\\x" [0-9a-fA-F] [0-9a-fA-F]	-> MXaStringPart
+    "\\#" [0-9]+ ";"				-> MXaStringPart
+    "\\#x" [0-9a-fA-F]+ ";"		-> MXaStringPart
+    "\\&" [a-z]+ ";"				-> MXaStringPart
+    MXaStringPart*				-> MXaString
+
+%% Tokens
+
+sorts
+  MXaToken
+
+context-free syntax
+
+  MXaKEYWORD			-> MXaToken	{cons("MXaKeyword"), category("Token")}
+  MXaPUNCT				-> MXaToken	{cons("MXaSymbol"), category("Token")}
+  "\"" MXaSYMBOL "\""		-> MXaToken	{cons("MXaSymbol"), category("Token")}
+
+  %%% ADD LANGUAGE SPECIFIC TOKENS
+
+sorts
+	MXaREP MXaKEYWORD MXaPUNCT MXaSYMBOL MXaSYMBOLCHAR
+
+lexical syntax
+
+  [\*\+]				-> MXaREP
+  [a-z][A-Za-z\_\$0-9]+	-> MXaKEYWORD
+  [\(\)\[\]\{\}\<\>\|\,\;]+	-> MXaPUNCT
+  ~[\"\\ \t\n]			-> MXaSYMBOLCHAR
+  [\\][\"]				-> MXaSYMBOLCHAR
+  [\\][\\]				-> MXaSYMBOLCHAR
+  MXaSYMBOLCHAR+	-> MXaSYMBOL
+
+lexical restrictions
+
+    MXaKEYWORD -/- [A-Za-z\_\$0-9]
+    MXaSYMBOL -/- [\|\!\@\#\$\%\&\/\=\+\-\.\,\'\`\^\~\*\(\)\[\]\{\}\<\>]
+
+sorts
+	MXaSynAttr
+
+lexical syntax
+
+  "prefer"			-> MXaSynAttr
+
+  sorts
+	MXaID
+	MXaVar
+	MXaType
+	MXaCons
+	MXaUnderID
+	MXaArrow
+	MXaSDFModule
+
+lexical syntax
+
+    "->"	-> MXaArrow
+    "<-"	-> MXaArrow
+    "<->"	-> MXaArrow
+
+
+    [A-Za-z][A-Za-z\_\'0-9]*	-> MXaID
+    [A-Z][A-Za-z\_\'\$0-9]*	-> MXaVarID
+    [a-z][A-Za-z\_\'\$0-9]*		-> MXaCons
+    [A-Za-z][A-Za-z\_\-\/0-9]*	-> MXaSDFModule
+    MXaID -> MXaType
+    "&" MXaID -> MXaType
+    MXaType "*" -> MXaType
+    "?" -> MXaType
+    "_" -> MXaUnderID
+
+    MXaUnderID -> MXaID
+
+	[\-][\-][\-]+ -> MXaLINE
+
+  lexical restrictions
+
+	MXaID -/- [A-Za-z\_\'0-9]
+	MXaVar -/- [A-Za-z\_\'\$0-9]
+	MXaCons -/- [A-Za-z\_\'\$0-9]
+	MXaUnderID -/- [A-Za-z\_\'\$0-9]
+	MXaSDFModule -/- [A-Za-z\_\-\/0-9]
+	MXaLINE -/- [\-]
+
+
