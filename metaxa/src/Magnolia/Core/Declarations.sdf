@@ -1,0 +1,385 @@
+%% Declarations.sdf is part of Magnolia
+%%
+%% Copyright (C) 2008,2009  Anya Helene Bagge
+%% Copyright (C) 2008,2009  University of Bergen
+%%
+%% Contact: <magnolia@magnolia-lang.org>
+%%
+%% This program is free software: you can redistribute it and/or modify
+%% it under the terms of the GNU General Public License as published by
+%% the Free Software Foundation, either version 3 of the License, or
+%% (at your option) any later version.
+%% 
+%% This program is distributed in the hope that it will be useful,
+%% but WITHOUT ANY WARRANTY; without even the implied warranty of
+%% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%% GNU General Public License for more details.
+%% 
+%% You should have received a copy of the GNU General Public License
+%% along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+%% This module defines the common declaration syntax for Magnolia. The main 
+%% non-terminal is
+%%
+%%   Decl -- a full, semicolon-terminated declaration.
+%%
+%% A declaration consists of one or more clauses. The main clause starts
+%% with a keyword identifying the declaration. Additional (subordinate)
+%% clauses follow the main clause, and declarations can commonly have
+%% zero or more of them, the exact kinds depending on the declaration.
+%%
+%%   _Clause   -- the main part of a declaration, should contain whatever
+%%       information uniquely identifies the declared symbol
+%%   _SubClause -- a sub-clause with additional information about a decl
+%%
+%% Some clauses additionally contain a list of specifiers.
+%%
+%%   _Spec   -- a particular item in clause
+%%
+%% The structure of a declaration is:
+%%
+%%  MainClause SubClauses Definition? -> Decl
+%%
+%% The AttrSubClause is common to all declarations, and is the place for
+%% any extra associated information that we do not want to create
+%% special syntax for.
+%%
+%% It may be preferable (for error management) to allow all subclauses for
+%% all declarations in the grammar, and then complain about them in the
+%% subsequent analysis.
+
+module Magnolia/Core/Declarations
+
+
+exports
+
+%%% Declaration and definition sentences
+
+  sorts
+	Decl		SubClause
+	StatDeclarative ExprDeclarative
+	TypeDeclarative	%% DeclDeclarative 
+
+  %% Externals
+	BlockStat	Expr
+	Type		DataRep
+	Name
+
+  context-free syntax
+
+    StatDeclarative SubClause* BlockStat
+	-> BraceDecl
+		{cons("DefDecl")}
+
+    ExprDeclarative SubClause* "=" Expr ";"
+	-> SemiDecl
+		{cons("DefDecl")}
+
+    TypeDeclarative SubClause* "=" Type ";"
+	-> Decl
+		{cons("DefDecl")}
+
+    DeclDeclarative SubClause* DeclBody
+	-> BraceDecl
+		{cons("DefDecl")}
+
+    "{" Decl* "}" -> DeclBody {cons("DeclBody"), dummy}
+
+    SemiDecl -> Decl {abstract}
+
+    BraceDecl -> Decl {abstract}
+
+	"external" -> SubClause
+	
+%%% Procedure Declarations
+  sorts
+    ProcClause ProcName
+
+  context-free syntax
+
+    "procedure" ProcName ProcedureParamList
+	-> ProcClause
+		{cons("ProcClause")}
+
+    ProcClause -> StatDeclarative
+
+    Name -> ProcName
+
+    "_=_" -> ProcName {cons("Assign")}
+
+  lexical restrictions
+
+    "procedure"		-/- [A-Za-z\_\$0-9]
+    "_=_"		-/- [A-Za-z\_\$0-9]
+
+%%% Function Declarations
+  sorts
+    FunClause FunName
+
+  context-free syntax
+
+    "function" FunName FunctionParamList ":" Type
+	-> FunClause			{cons("FunClause")}
+
+    FunClause -> ExprDeclarative
+
+    Name -> FunName
+
+  lexical restrictions
+
+    "function"		-/- [A-Za-z\_\$0-9]
+
+%%% Predicate Declarations
+  sorts
+    PredClause PredName
+
+  context-free syntax
+
+    "predicate" PredName FunctionParamList
+	-> PredClause			{cons("PredClause")}
+
+    PredClause -> ExprDeclarative
+
+    Name -> PredName
+
+  lexical restrictions
+
+    "predicate"		-/- [A-Za-z\_\$0-9]
+
+
+%%% Axiom Declarations
+  sorts
+    AxiomClause AxiomName
+
+  context-free syntax
+
+    "axiom" AxiomName FunctionParamList
+	-> AxiomClause			{cons("AxiomClause")}
+
+    "theorem" AxiomName FunctionParamList
+	-> AxiomClause			{cons("AxiomClause")}
+
+    "proof" AxiomName FunctionParamList
+	-> AxiomClause			{cons("AxiomClause")}
+
+    AxiomClause -> StatDeclarative
+
+    Name -> AxiomName
+
+  lexical restrictions
+
+    "axiom"		-/- [A-Za-z\_\$0-9]
+    "proof"		-/- [A-Za-z\_\$0-9]
+
+%%% Parameters and Parameter Modes
+  sorts
+	TypeParamList TypeParam
+	FunctionParamList FunctionParam
+	ProcedureParamList ProcedureParam
+	ParamMode
+
+  context-free syntax
+
+    "(" {TypeParam ","}* ")"	-> TypeParamList	{cons("Dummy")}
+
+    "(" {FunctionParam ","}* ")"-> FunctionParamList	{cons("Dummy")}
+
+    "(" {ProcedureParam ","}* ")"-> ProcedureParamList	{cons("Dummy")}
+
+    Type			-> TypeParam		{cons("TypeExprParam")}
+
+    Type Identifier		-> TypeParam		{cons("TypeExprParam")}
+
+    "type"			-> TypeParam		{cons("AnonTypeParam")}
+
+    "type" Identifier		-> TypeParam		{cons("TypeParam")}
+
+    "type" TypeParamList	-> TypeParam		{cons("AnonTypePParam")}
+
+    "type" Identifier TypeParamList -> TypeParam	{cons("TypePParam")}
+
+    Identifier ":" Type		-> FunctionParam	{cons("Param")}
+
+    ParamMode Identifier ":" Type -> ProcedureParam	{prefer, cons("Param")}
+
+    "obs"			-> ParamMode		{cons("Obs")}
+    "upd"			-> ParamMode		{cons("Upd")}
+    "out"			-> ParamMode		{cons("Out")}
+    "exp"			-> ParamMode		{cons("Exp")}
+    "giv"			-> ParamMode		{cons("Giv")}
+    "del"			-> ParamMode		{cons("Del")}
+    "nrm"			-> ParamMode		{cons("Nrm")}
+
+  lexical restrictions
+
+    "type"		-/- [A-Za-z\_\$0-9]
+
+    "obs"		-/- [A-Za-z\_\$0-9]
+    "upd"		-/- [A-Za-z\_\$0-9]
+    "out"		-/- [A-Za-z\_\$0-9]
+    "exp"		-/- [A-Za-z\_\$0-9]
+    "giv"		-/- [A-Za-z\_\$0-9]
+    "del"		-/- [A-Za-z\_\$0-9]
+    "nrm"		-/- [A-Za-z\_\$0-9]
+
+%%% Variables
+
+  sorts VarClause VarName
+
+  context-free syntax
+
+    "var" VarName ":" Type -> VarClause {cons("VarClause")}
+
+    VarClause -> ExprDeclarative
+
+    Name -> VarName
+
+  lexical restrictions
+
+    "var"		-/- [A-Za-z\_\$0-9]
+
+%%% Types and Classes
+
+  sorts 
+	TypeName TypeClause 
+
+  context-free syntax
+
+    "type" TypeName	-> TypeClause {cons("TypeClause")}
+
+    Name -> TypeName
+
+    TypeClause -> TypeDeclarative
+
+  lexical restrictions
+
+    "type"		-/- [A-Za-z\_\$0-9]
+
+%%% Concepts and implementations
+
+  sorts 
+	DeclName DeclClause
+
+  context-free syntax
+
+    "concept" DeclName SubClause* "=" ConceptExpr		-> Decl {cons("ConceptClause")}
+%%    "theorem" DeclName		-> DeclClause {cons("ConceptClause")}
+    "implementation" DeclName "on" ConceptExpr "defines"	-> DeclClause {cons("ImplClause")}
+    "signature" DeclName	-> DeclClause {cons("SignatureClause")}
+ 
+ 	"library" DeclName SubClause* "=" ImplExpr	-> Decl {cons("Library")}
+
+    Identifier -> DeclName
+
+    DeclClause -> DeclDeclarative
+
+  lexical restrictions
+
+    "concept"		-/- [A-Za-z\_\$0-9]
+%%    "theorem"		-/- [A-Za-z\_\$0-9]
+    "module"		-/- [A-Za-z\_\$0-9]
+    "signature"		-/- [A-Za-z\_\$0-9]
+
+%%% Declaration Attributes
+
+  sorts
+	AttrClause Attribute
+
+  context-free syntax
+
+    "[" {Attribute ","}* "]"	-> AttrClause		{cons("Attrs")}
+
+    AttrClause -> SubClause
+
+    Name "(" {Expr ","}* ")" -> Attribute		{cons("Attr")}
+
+
+%%% Guarding
+
+  sorts
+	GuardClause
+
+  context-free syntax
+
+   "guard" Expr -> GuardClause {cons("Guard")}
+
+   GuardClause -> SubClause
+
+%%% Requires
+
+  sorts 
+    ConceptExpr MorphClause
+
+  context-free syntax
+
+    "requires" {ConceptExpr ","}+ ";" -> Decl	{cons("Requires")}
+
+
+  lexical restrictions
+
+    "requires"		-/- [A-Za-z\_\$0-9]
+    "morphism"		-/- [A-Za-z\_\$0-9]
+
+%%% Generated & Free
+
+  context-free syntax
+
+    "partition" TypeName "by" {FunClause ","}* ";" -> Decl {cons("Partition")}
+
+    "generate" TypeName "by" {FunClause ","}* ";" -> Decl {cons("Generate")}
+
+    "generate" TypeName "by" {Expr ","}* ";" -> Decl {cons("Generate")}
+
+    "free" TypeName "by" {FunClause ","}* ";" -> Decl {cons("Free")}
+
+%%% Satisfaction
+
+  sorts
+    ImplExpr ConceptExpr Morphism MorphClause
+
+  context-free syntax
+
+
+    "satisfaction" DeclName "=" ConceptExpr WithClause? "models" ConceptExpr ";" -> Decl {cons("ModelsImpl")}
+    
+    "with" ImplExpr -> WithClause {cons("WithClause")}
+
+    DeclName -> ConceptExpr {cons("Concept")}
+
+    DeclBody -> ConceptExpr {cons("ConceptBody")}
+
+    "signature" ConceptExpr -> ConceptExpr {cons("SignatureOf")}
+
+    ConceptExpr Morphism -> ConceptExpr {cons("MorphedConcept")}
+
+    DeclName -> ImplExpr  {cons("Impl")}
+
+    ImplExpr Morphism -> ImplExpr  {cons("ImplMorph")}
+
+    DeclBody -> ImplExpr  {cons("ImplBody")}
+    
+    "external" Identifier Name "defines" ImplExpr -> ImplExpr {cons("ExternalLib")}
+
+%% Morphisms
+context-free syntax
+
+    "morphism" MorphClause -> Morphism  {cons("Morphism")}
+
+    "morphism" MorphClause -> SubClause {cons("Morphism")}
+
+    "protect" FunClause "by" Expr -> Morphism	{cons("Protect")}
+
+    "[" {MorphClause ","}* "]" -> Morphism {cons("Morphisms")}
+
+    DeclName "=>" DeclName -> MorphClause  {cons("Rename")}
+
+    TypeClause "=" Type -> MorphClause	{cons("Morphism")}
+
+    FunClause "=" Expr -> MorphClause	{cons("Morphism")}
+
+    PredClause "=" Expr -> MorphClause	{cons("Morphism")}
+
+    "protect" FunClause "by" Expr -> MorphClause	{cons("Protect")}
+
+    "protect" FunClause "by" Expr -> SubClause	{cons("Protect")}
+
