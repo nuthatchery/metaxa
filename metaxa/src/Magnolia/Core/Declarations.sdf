@@ -67,19 +67,19 @@ exports
 
   context-free syntax
 
-    StatDeclarative SubClause* BlockStat
+    Modifier* StatDeclarative SubClause* BlockStat
 	-> BraceDecl
 		{cons("DefDecl")}
 
-    ExprDeclarative SubClause* "=" Expr ";"
+    Modifier* ExprDeclarative SubClause* "=" Expr ";"
 	-> SemiDecl
 		{cons("DefDecl")}
 
-    TypeDeclarative SubClause* "=" Type ";"
+    Modifier* TypeDeclarative SubClause* "=" Type ";"
 	-> Decl
 		{cons("DefDecl")}
 
-    DeclDeclarative SubClause* DeclBody
+    Modifier* DeclDeclarative SubClause* DeclBody
 	-> BraceDecl
 		{cons("DefDecl")}
 
@@ -91,21 +91,27 @@ exports
 
 	"external" -> SubClause
 	
+	"default" -> Modifier
+	
+	"abstract" -> Modifier
+	
 %%% Procedure Declarations
   sorts
-    ProcClause ProcName
+    ProcClause ProcName ProcIdentifier
 
   context-free syntax
 
-    "procedure" ProcName ProcedureParamList
+    "procedure" ProcIdentifier ProcedureParamList
 	-> ProcClause
 		{cons("ProcClause")}
 
     ProcClause -> StatDeclarative
 
-    Name -> ProcName
+    Identifier -> ProcIdentifier
 
-    "_=_" -> ProcName {cons("Assign")}
+	Name -> ProcName
+	
+    "_=_" -> ProcIdentifier {cons("Assign")}
 
   lexical restrictions
 
@@ -114,17 +120,19 @@ exports
 
 %%% Function Declarations
   sorts
-    FunClause FunName
+    FunClause FunName FunIdentifier
 
   context-free syntax
 
-    "function" FunName FunctionParamList ":" Type
+    "function" FunIdentifier FunctionParamList ":" Type
 	-> FunClause			{cons("FunClause")}
 
     FunClause -> ExprDeclarative
 
-    Name -> FunName
-
+	Identifier -> FunIdentifier
+	
+	Name -> FunName
+	
   lexical restrictions
 
     "function"		-/- [A-Za-z\_\$0-9]
@@ -135,12 +143,10 @@ exports
 
   context-free syntax
 
-    "predicate" PredName FunctionParamList
+    "predicate" FunIdentifier FunctionParamList
 	-> PredClause			{cons("PredClause")}
 
     PredClause -> ExprDeclarative
-
-    Name -> PredName
 
   lexical restrictions
 
@@ -149,22 +155,24 @@ exports
 
 %%% Axiom Declarations
   sorts
-    AxiomClause AxiomName
+    AxiomClause AxiomName AxiomIdentifier
 
   context-free syntax
 
-    "axiom" AxiomName FunctionParamList
+    "axiom" Identifier FunctionParamList
 	-> AxiomClause			{cons("AxiomClause")}
 
-    "theorem" AxiomName FunctionParamList
+    "theorem" Identifier FunctionParamList
 	-> AxiomClause			{cons("AxiomClause")}
 
-    "proof" AxiomName FunctionParamList
+    "proof" Identifier FunctionParamList
 	-> AxiomClause			{cons("AxiomClause")}
 
     AxiomClause -> StatDeclarative
 
     Name -> AxiomName
+    
+    Identifier -> AxiomIdentifier
 
   lexical restrictions
 
@@ -180,27 +188,27 @@ exports
 
   context-free syntax
 
-    "(" {TypeParam ","}* ")"	-> TypeParamList	{cons("Dummy")}
+   %% "(" {TypeParam ","}* ")"	-> TypeParamList	{cons("Dummy")}
 
     "(" {FunctionParam ","}* ")"-> FunctionParamList	{cons("Dummy")}
 
     "(" {ProcedureParam ","}* ")"-> ProcedureParamList	{cons("Dummy")}
 
-    Type			-> TypeParam		{cons("TypeExprParam")}
+   %% Type			-> TypeParam		{cons("TypeExprParam")}
 
-    Type Identifier		-> TypeParam		{cons("TypeExprParam")}
+   %% Type Identifier		-> TypeParam		{cons("TypeExprParam")}
 
-    "type"			-> TypeParam		{cons("AnonTypeParam")}
+   %% "type"			-> TypeParam		{cons("AnonTypeParam")}
 
-    "type" Identifier		-> TypeParam		{cons("TypeParam")}
+   %% "type" Identifier		-> TypeParam		{cons("TypeParam")}
 
-    "type" TypeParamList	-> TypeParam		{cons("AnonTypePParam")}
+   %% "type" TypeParamList	-> TypeParam		{cons("AnonTypePParam")}
 
-    "type" Identifier TypeParamList -> TypeParam	{cons("TypePParam")}
+   %% "type" Identifier TypeParamList -> TypeParam	{cons("TypePParam")}
 
-    Identifier ":" Type		-> FunctionParam	{cons("Param")}
+    VarIdentifier ":" Type		-> FunctionParam	{cons("Param")}
 
-    ParamMode Identifier ":" Type -> ProcedureParam	{prefer, cons("Param")}
+    ParamMode VarIdentifier ":" Type -> ProcedureParam	{prefer, cons("Param")}
 
     "obs"			-> ParamMode		{cons("Obs")}
     "upd"			-> ParamMode		{cons("Upd")}
@@ -224,16 +232,18 @@ exports
 
 %%% Variables
 
-  sorts VarClause VarName
-
+  sorts VarClause VarIdentifier VarName
+  
   context-free syntax
 
-    "var" VarName ":" Type -> VarClause {cons("VarClause")}
+    "var" VarIdentifier ":" Type -> VarClause {cons("VarClause")}
 
     VarClause -> ExprDeclarative
 
-    Name -> VarName
-
+	Identifier -> VarIdentifier
+	
+	Name -> VarName
+	
   lexical restrictions
 
     "var"		-/- [A-Za-z\_\$0-9]
@@ -241,16 +251,18 @@ exports
 %%% Types and Classes
 
   sorts 
-	TypeName TypeClause 
+	TypeClause TypeName TypeIdentifier
 
   context-free syntax
 
-    "type" TypeName	-> TypeClause {cons("TypeClause")}
-
-    Name -> TypeName
+    "type" TypeIdentifier	-> TypeClause {cons("TypeClause")}
 
     TypeClause -> TypeDeclarative
 
+	Name -> TypeName
+	
+	Identifier -> TypeIdentifier
+	
   lexical restrictions
 
     "type"		-/- [A-Za-z\_\$0-9]
@@ -258,27 +270,28 @@ exports
 %%% Concepts and implementations
 
   sorts 
-	DeclName DeclClause
+	 DeclClause
 
   context-free syntax
 
-    "concept" DeclName SubClause* "=" ConceptExpr		-> Decl {cons("ConceptClause")}
-%%    "theorem" DeclName		-> DeclClause {cons("ConceptClause")}
-    "implementation" DeclName "on" ConceptExpr "defines"	-> DeclClause {cons("ImplClause")}
-    "signature" DeclName	-> DeclClause {cons("SignatureClause")}
+    Modifier* "concept" Identifier SubClause* "=" ConceptExpr		-> Decl {cons("ConceptClause")}
+%%    "theorem" Identifier		-> DeclClause {cons("ConceptClause")}
+    Modifier* "implementation" Identifier SubClause* "=" ImplExpr -> Decl {cons("ImplClause")}
  
- 	"library" DeclName SubClause* "=" ImplExpr	-> Decl {cons("Library")}
+ 	Modifier* "library" Identifier SubClause* "=" ImplExpr	-> Decl {cons("Library")}
 
-    Identifier -> DeclName
+    Modifier* "concept" Identifier SubClause* DeclBody		-> Decl {deprecated("Add '=' before body"), cons("ConceptClause")}
 
+    Modifier* "implementation" Identifier SubClause* ImplExpr -> Decl {deprecated("Add '=' before body"), cons("ImplClause")}
+ 
     DeclClause -> DeclDeclarative
 
   lexical restrictions
 
     "concept"		-/- [A-Za-z\_\$0-9]
 %%    "theorem"		-/- [A-Za-z\_\$0-9]
-    "module"		-/- [A-Za-z\_\$0-9]
-    "signature"		-/- [A-Za-z\_\$0-9]
+    "implementation"		-/- [A-Za-z\_\$0-9]
+    "library"		-/- [A-Za-z\_\$0-9]
 
 %%% Declaration Attributes
 
@@ -314,6 +327,12 @@ exports
 
     "requires" {ConceptExpr ","}+ ";" -> Decl	{cons("Requires")}
 
+%% TODO: What are these supposed to be?
+	"preserve" DeclBody -> Decl {todo("Grammar needs refinement")}
+	
+	"congruence" DeclBody -> Decl {todo("Grammar needs refinement")}
+	
+	
 
   lexical restrictions
 
@@ -340,26 +359,34 @@ exports
   context-free syntax
 
 
-    "satisfaction" DeclName "=" ConceptExpr WithClause? "models" ConceptExpr ";" -> Decl {cons("ModelsImpl")}
+    "satisfaction" Identifier SubClause* "=" ConceptExpr WithClause? "models" ConceptExpr -> Decl {cons("ModelsImpl")}
+
+    "satisfaction" Identifier SubClause* "=" "on" ConceptExpr WithClause? "models" ConceptExpr -> Decl {deprecated("Drop 'on'"), cons("ModelsImpl")}
     
     "with" ImplExpr -> WithClause {cons("WithClause")}
 
-    DeclName -> ConceptExpr {cons("Concept")}
+    Name -> ConceptExpr {cons("Concept")}
 
     DeclBody -> ConceptExpr {cons("ConceptBody")}
-
+    
     "signature" ConceptExpr -> ConceptExpr {cons("SignatureOf")}
 
     ConceptExpr Morphism -> ConceptExpr {cons("MorphedConcept")}
 
-    DeclName -> ImplExpr  {cons("Impl")}
+    Name -> ImplExpr  {cons("Impl")}
 
     ImplExpr Morphism -> ImplExpr  {cons("ImplMorph")}
 
     DeclBody -> ImplExpr  {cons("ImplBody")}
     
+    %% TODO: Needs refinement
+    
     "external" Identifier Name "defines" ImplExpr -> ImplExpr {cons("ExternalLib")}
 
+    "external" Identifier Name "on" ConceptExpr "defines" ImplExpr -> ImplExpr {cons("ExternalLib")}
+
+    "on" ConceptExpr "defines" ImplExpr -> ImplExpr {cons("OnDefines")}
+    
 %% Morphisms
 context-free syntax
 
@@ -367,11 +394,13 @@ context-free syntax
 
     "morphism" MorphClause -> SubClause {cons("Morphism")}
 
-    "protect" FunClause "by" Expr -> Morphism	{cons("Protect")}
+	"{" MorphClause* "}" -> MorphClause {todo("clean up syntax for list of morph clauses"), cons("ImplMorphism")}
+	
+	"{" (MorphClause ";")* "}" -> MorphClause {todo("clean up syntax for list of morph clauses"), cons("ImplMorphism")}
 
     "[" {MorphClause ","}* "]" -> Morphism {cons("Morphisms")}
 
-    DeclName "=>" DeclName -> MorphClause  {cons("Rename")}
+    Name "=>" Name -> MorphClause  {cons("Rename")}
 
     TypeClause "=" Type -> MorphClause	{cons("Morphism")}
 
@@ -379,7 +408,36 @@ context-free syntax
 
     PredClause "=" Expr -> MorphClause	{cons("Morphism")}
 
-    "protect" FunClause "by" Expr -> MorphClause	{cons("Protect")}
+    "protect" FunClause "guard" Expr -> Morphism	{cons("Protect")}
 
-    "protect" FunClause "by" Expr -> SubClause	{cons("Protect")}
+    "protect" FunClause "guard" Expr -> MorphClause	{cons("Protect")}
 
+    "protect" FunClause "guard" Expr -> SubClause	{cons("Protect")}
+
+    "protect" FunClause "by" Expr -> Morphism	{deprecated("Use 'guard' instead of 'by'"),cons("Protect")}
+
+    "protect" FunClause "by" Expr -> MorphClause	{deprecated("Use 'guard' instead of 'by'"),cons("Protect")}
+
+    "protect" FunClause "by" Expr -> SubClause	{deprecated("Use 'guard' instead of 'by'"),cons("Protect")}
+
+%% ImplExpr
+context-free syntax
+
+	ImplExpr "@" ImplExpr -> ImplExpr {left, cons("At")}
+	ImplExpr "@@" ImplExpr -> ImplExpr {left, cons("AtAt")}
+	ImplExpr "*" ImplExpr -> ImplExpr {left, cons("Star")}
+	ImplExpr "**" ImplExpr -> ImplExpr {left, cons("StarStar")}
+	ImplExpr "+" ImplExpr -> ImplExpr {left, cons("Plus")}
+	ImplExpr "++" ImplExpr -> ImplExpr {left, cons("PlusPlus")}
+	ImplExpr "times" ImplExpr -> ImplExpr {left, cons("Times")}
+	"(" ImplExpr ")" -> ImplExpr {bracket}
+
+	ConceptExpr "@" ConceptExpr -> ConceptExpr {left, cons("At")}
+	ConceptExpr "@@" ConceptExpr -> ConceptExpr {left, cons("AtAt")}
+	ConceptExpr "*" ConceptExpr -> ConceptExpr {left, cons("Star")}
+	ConceptExpr "**" ConceptExpr -> ConceptExpr {left, cons("StarStar")}
+	ConceptExpr "+" ConceptExpr -> ConceptExpr {left, cons("Plus")}
+	ConceptExpr "++" ConceptExpr -> ConceptExpr {left, cons("PlusPlus")}
+	ConceptExpr "times" ConceptExpr -> ConceptExpr {left, cons("Times")}
+	"(" ConceptExpr ")" -> ConceptExpr {bracket}
+	

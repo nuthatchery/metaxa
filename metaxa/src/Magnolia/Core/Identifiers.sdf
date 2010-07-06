@@ -1,0 +1,67 @@
+%% Identifiers.sdf is part of Magnolia
+%%
+%% Copyright (C) 2008,2009  Anya Helene Bagge
+%% Copyright (C) 2008,2009  University of Bergen
+%%
+%% Contact: <magnolia@magnolia-lang.org>
+%%
+%% This program is free software: you can redistribute it and/or modify
+%% it under the terms of the GNU General Public License as published by
+%% the Free Software Foundation, either version 3 of the License, or
+%% (at your option) any later version.
+%% 
+%% This program is distributed in the hope that it will be useful,
+%% but WITHOUT ANY WARRANTY; without even the implied warranty of
+%% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%% GNU General Public License for more details.
+%% 
+%% You should have received a copy of the GNU General Public License
+%% along with this program.  If not, see <http://www.gnu.org/licenses/>.
+module Magnolia/Core/Identifiers
+
+exports
+  sorts
+    Identifier
+    ID
+    NOID
+
+  context-free syntax
+
+    ID -> Identifier {cons("Name")}
+
+	ID -> Name {cons("Name")}
+	
+	Name "." ID -> Name {cons("QName")}
+	
+  lexical syntax
+
+    [A-Za-z][A-Za-z\_\$\#0-9]* -> ID
+
+    "_" -> NOID
+    "?" -> NOID
+
+    NOID -> ID
+
+%%    "if" -> ID {reject}
+%%    "in" -> ID {reject}
+%%    "end" -> ID {reject}
+%%    "open" -> ID {reject}
+%%    "else" -> ID {reject}
+%%    "while" -> ID {reject}
+%%    "var" -> ID {reject}
+%%    "class" -> ID {reject}
+%%    "type" -> ID {reject}
+%%    "module" -> ID {reject}
+%%    "imports" -> ID {reject}
+%%    "requires" -> ID {reject}
+%%    "yield" -> ID {reject}
+%%    "return" -> ID {reject}
+%%    "break" -> ID {reject}
+%%    "true" -> ID {reject}
+%%    "false" -> ID {reject}
+
+  lexical restrictions
+
+    ID -/- [A-Za-z\_0-9]
+    "_" -/- [A-Za-z\_0-9]
+    "?" -/- [A-Za-z\_0-9]
