@@ -328,10 +328,13 @@ exports
     "requires" {ConceptExpr ","}+ ";" -> Decl	{cons("Requires")}
 
 %% TODO: What are these supposed to be?
-	"preserve" DeclBody -> Decl {todo("Grammar needs refinement")}
+	"preserve" DeclBody -> Decl {todo("preserve -- Grammar needs refinement")}
 	
-	"congruence" DeclBody -> Decl {todo("Grammar needs refinement")}
+	"congruence" DeclBody -> Decl {todo("congruence -- Grammar needs refinement")}
 	
+	"preserve" DeclBody "on" ConceptExpr -> Decl {todo("preserve/on -- Grammar needs refinement")}
+	
+	"congruence" DeclBody "on" ConceptExpr -> Decl {todo("congruence/on -- Grammar needs refinement")}
 	
 
   lexical restrictions
@@ -369,7 +372,7 @@ exports
 
     DeclBody -> ConceptExpr {cons("ConceptBody")}
     
-    "signature" ConceptExpr -> ConceptExpr {cons("SignatureOf")}
+    "signature" ConceptExpr -> ConceptExpr {todo("signature -- Bruker vi denne fremdeles?"),cons("SignatureOf")}
 
     ConceptExpr Morphism -> ConceptExpr {cons("MorphedConcept")}
 
@@ -423,21 +426,55 @@ context-free syntax
 %% ImplExpr
 context-free syntax
 
-	ImplExpr "@" ImplExpr -> ImplExpr {left, cons("At")}
-	ImplExpr "@@" ImplExpr -> ImplExpr {left, cons("AtAt")}
-	ImplExpr "*" ImplExpr -> ImplExpr {left, cons("Star")}
-	ImplExpr "**" ImplExpr -> ImplExpr {left, cons("StarStar")}
-	ImplExpr "+" ImplExpr -> ImplExpr {left, cons("Plus")}
-	ImplExpr "++" ImplExpr -> ImplExpr {left, cons("PlusPlus")}
-	ImplExpr "times" ImplExpr -> ImplExpr {left, cons("Times")}
-	"(" ImplExpr ")" -> ImplExpr {bracket}
+	ImplExpr "@" ImplExpr 		-> ImplExpr {left, cons("At")}
+	ImplExpr "@@" ImplExpr 		-> ImplExpr {left, cons("AtAt")}
+	ImplExpr "*" ImplExpr 		-> ImplExpr {left, cons("Star")}
+	ImplExpr "**" ImplExpr 		-> ImplExpr {left, cons("StarStar")}
+	ImplExpr "+" ImplExpr 		-> ImplExpr {left, cons("Plus")}
+	ImplExpr "++" ImplExpr 		-> ImplExpr {left, cons("PlusPlus")}
+	ImplExpr "times" ImplExpr 	-> ImplExpr {left, cons("Times")}
+	"(" ImplExpr ")" 			-> ImplExpr {bracket}
 
-	ConceptExpr "@" ConceptExpr -> ConceptExpr {left, cons("At")}
-	ConceptExpr "@@" ConceptExpr -> ConceptExpr {left, cons("AtAt")}
-	ConceptExpr "*" ConceptExpr -> ConceptExpr {left, cons("Star")}
-	ConceptExpr "**" ConceptExpr -> ConceptExpr {left, cons("StarStar")}
-	ConceptExpr "+" ConceptExpr -> ConceptExpr {left, cons("Plus")}
-	ConceptExpr "++" ConceptExpr -> ConceptExpr {left, cons("PlusPlus")}
+	ConceptExpr "@" ConceptExpr 	-> ConceptExpr {left, cons("At")}
+	ConceptExpr "@@" ConceptExpr 	-> ConceptExpr {left, cons("AtAt")}
+	ConceptExpr "*" ConceptExpr 	-> ConceptExpr {left, cons("Star")}
+	ConceptExpr "**" ConceptExpr 	-> ConceptExpr {left, cons("StarStar")}
+	ConceptExpr "+" ConceptExpr 	-> ConceptExpr {left, cons("Plus")}
+	ConceptExpr "++" ConceptExpr 	-> ConceptExpr {left, cons("PlusPlus")}
 	ConceptExpr "times" ConceptExpr -> ConceptExpr {left, cons("Times")}
-	"(" ConceptExpr ")" -> ConceptExpr {bracket}
+	"(" ConceptExpr ")" 			-> ConceptExpr {bracket}
+
+context-free priorities
+
+	ImplExpr Morphism			-> ImplExpr
+>
+	ImplExpr "times" ImplExpr 	-> ImplExpr
+>
+{	ImplExpr "*" ImplExpr 		-> ImplExpr
+	ImplExpr "**" ImplExpr 		-> ImplExpr
+}
+>
+{	ImplExpr "@" ImplExpr 		-> ImplExpr
+	ImplExpr "@@" ImplExpr 		-> ImplExpr
+	ImplExpr "+" ImplExpr 		-> ImplExpr
+	ImplExpr "++" ImplExpr 		-> ImplExpr
+}
+
+context-free priorities
+
+	ConceptExpr Morphism			-> ConceptExpr
+>
+	ConceptExpr "times" ConceptExpr 	-> ConceptExpr
+>
+{	ConceptExpr "*" ConceptExpr 		-> ConceptExpr
+	ConceptExpr "**" ConceptExpr 		-> ConceptExpr
+}
+>
+{	ConceptExpr "@" ConceptExpr 		-> ConceptExpr
+	ConceptExpr "@@" ConceptExpr 		-> ConceptExpr
+	ConceptExpr "+" ConceptExpr 		-> ConceptExpr
+	ConceptExpr "++" ConceptExpr 		-> ConceptExpr
+}
+>
+	"signature" ConceptExpr				-> ConceptExpr
 	

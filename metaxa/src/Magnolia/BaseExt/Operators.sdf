@@ -1,0 +1,154 @@
+%% Expressions.sdf is part of Magnolia
+%%
+%% Copyright (C) 2008,2009  Anya Helene Bagge
+%% Copyright (C) 2008,2009  University of Bergen
+%%
+%% Contact: <magnolia@magnolia-lang.org>
+%%
+%% This program is free software: you can redistribute it and/or modify
+%% it under the terms of the GNU General Public License as published by
+%% the Free Software Foundation, either version 3 of the License, or
+%% (at your option) any later version.
+%% 
+%% This program is distributed in the hope that it will be useful,
+%% but WITHOUT ANY WARRANTY; without even the implied warranty of
+%% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%% GNU General Public License for more details.
+%% 
+%% You should have received a copy of the GNU General Public License
+%% along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+%% This modules defines the syntax of expression. An expression is one of
+%%
+%%   - a literal
+%%   - a variable
+%%   - an operator applied to expressions
+%%   - a function applied to expressions
+%%   - a type (possibly with expression arguments)
+%%   - a control-flow expression
+
+module Magnolia/BaseExt/Operators
+
+exports
+  sorts
+    BINOP UNOP
+    DOTOP MULOP ADDOP SHFOP CMPOP EQUOP BTAND BTXOR BITOR LGAND LOGOR 
+    LGNOT BTNOT NEGOP RNGOP LGIMP SUBST 
+
+    Expr	Identifier	ID	NOID
+
+%%% Operators are divided into classes with similar behaviour
+  lexical syntax
+    "."          -> DOTOP
+    "*"|"/"|"%"|"÷"  -> MULOP
+    "**"         -> MULOP
+    "+"|"-"      -> ADDOP
+    "++"|"--"    -> ADDOP
+    "<<"|">>"    -> SHFOP
+    ".."         -> RNGOP
+    "<"|">"|"<="|">=" -> CMPOP
+    "=="|"!="    -> EQUOP
+    "&"          -> BTAND
+    "^"          -> BTXOR
+    "|"          -> BITOR
+    "<->"        -> SUBST
+    "&&"         -> LGAND
+    "||"         -> LOGOR
+    "=>"         -> LGIMP
+    
+
+    DOTOP|MULOP|ADDOP|SHFOP|RNGOP|CMPOP|EQUOP|BTAND|BTXOR|BITOR|SUBST|LGAND|LOGOR|LGIMP -> BINOP
+
+    "+"|"-"      -> NEGOP
+    "~"          -> BTNOT
+    "!"          -> LGNOT
+
+    NEGOP|BTNOT|LGNOT -> UNOP
+
+    "_" BINOP "_" -> ID {prefer}
+    UNOP "_" -> ID {prefer}
+    "_[_]" -> ID {prefer}
+    "_[_]=_" -> ID {prefer}
+    "_(_)" -> ID {prefer}
+    "_=_" -> ID {prefer}
+    "_in_" -> ID {prefer}
+    "_notin_" -> ID {prefer}
+
+  lexical restrictions
+    ADDOP -/- [\+\-]
+    MULOP -/- [\*]
+    BITOR -/- [\|]
+    BTAND -/- [\&]
+    NEGOP -/- [0-9]
+    NOID -/- [\+\-\*\/\|\&\^\<\>\!\.\[\]\=]
+
+%%% Binary Operators
+  context-free syntax
+    Expr "." Identifier -> Expr  {prefer,cons("DotOp")}
+    Expr MULOP Expr -> Expr  {left, cons("BinOp")}
+    Expr ADDOP Expr -> Expr  {left, cons("BinOp")}
+    Expr SHFOP Expr -> Expr  {left, cons("BinOp")}
+    Expr RNGOP Expr -> Expr  {left, cons("BinOp")}
+    Expr CMPOP Expr -> Expr  {left, cons("BinOp")}
+    Expr "in" Expr -> Expr  {left, cons("In")}
+    Expr "not" "in" Expr -> Expr  {left, cons("NotIn")}
+    Expr EQUOP Expr -> Expr  {left, cons("BinOp")}
+    Expr BTAND Expr -> Expr  {left, cons("BinOp")}
+    Expr BTXOR Expr -> Expr  {left, cons("BinOp")}
+    Expr BITOR Expr -> Expr  {left, cons("BinOp")}
+    Expr SUBST Expr -> Expr  {left, cons("BinOp")}
+    Expr LGAND Expr -> Expr  {left, cons("BinOp")}
+    Expr LOGOR Expr -> Expr  {left, cons("BinOp")}
+    Expr LGIMP Expr -> Expr  {right, cons("BinOp")}
+
+    Expr "[" {Expr ","}* "]" -> Expr {cons("Index")}
+
+%%% Unary Operators
+
+    NEGOP Expr -> Expr {cons("PreOp")}
+    BTNOT Expr -> Expr {cons("PreOp")}
+    LGNOT Expr -> Expr {cons("PreOp")}
+
+%%% Priorities
+  context-free priorities
+    {
+      Expr "." Identifier -> Expr
+      Expr "[" {Expr ","}* "]" -> Expr
+    }
+  > {
+      NEGOP Expr -> Expr
+      BTNOT Expr -> Expr
+      LGNOT Expr -> Expr
+    }
+  > {left:
+      Expr MULOP Expr -> Expr
+    }
+  > {left:
+      Expr ADDOP Expr -> Expr
+    }
+  > {left:
+      Expr SHFOP Expr -> Expr
+    }
+  > {left:
+      Expr RNGOP Expr -> Expr
+    }
+  > {left:
+      Expr CMPOP Expr -> Expr
+      Expr "in" Expr -> Expr
+      Expr "not" "in" Expr -> Expr
+    }
+  > {left:
+      Expr EQUOP Expr -> Expr
+    }
+  >   Expr BTAND Expr -> Expr
+  >   Expr BTXOR Expr -> Expr
+  >   Expr BITOR Expr -> Expr
+  >   Expr SUBST Expr -> Expr
+  >   Expr LGAND Expr -> Expr
+  >   Expr LOGOR Expr -> Expr
+  >   Expr LGIMP Expr -> Expr
+
+lexical restrictions
+
+  "in"		-/- [A-Za-z\_\$0-9]
+  "not" 	-/- [A-Za-z\_\$0-9]
