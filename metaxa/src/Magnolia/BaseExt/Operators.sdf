@@ -85,6 +85,7 @@ exports
 %%% Binary Operators
   context-free syntax
     Expr "." Identifier -> Expr  {prefer,cons("DotOp")}
+    Expr "." DecNumeral -> Expr  {prefer,cons("DotOp")}
     Expr MULOP Expr -> Expr  {left, cons("BinOp")}
     Expr ADDOP Expr -> Expr  {left, cons("BinOp")}
     Expr SHFOP Expr -> Expr  {left, cons("BinOp")}

@@ -1,0 +1,398 @@
+language module Magnolia
+
+syntax skin
+
+	AssertClause(: by Expr :)                         -> (+ by Expr +)
+
+	AssertClause(: by simplify Expr :)                -> (+ by simplify Expr +)
+
+	AssertClause(: qed :)                             -> (+ qed +)
+
+	AttrClause(: [ {Attribute ","}* ] :)              -> (+ "[" {Attribute ","}* "]" +)
+
+	Attribute(: Identifier :)                         -> (+ Identifier +)
+
+	Attribute(: Name ( {Expr ","}* ) :)               -> (+ Name "(" {Expr ","}* ")" +)
+
+	AxiomClause(: axiom Identifier FunctionParamList :) -> (+ axiom Identifier FunctionParamList +)
+
+	AxiomClause(: proof Identifier FunctionParamList :) -> (+ proof Identifier FunctionParamList +)
+
+	AxiomClause(: theorem Identifier FunctionParamList :) -> (+ theorem Identifier FunctionParamList +)
+
+	BlockStat(: { Stat* } :)                          -> (+ "{" Stat* "}" +)
+
+	BraceDecl(: Modifier* DeclDeclarative SubClause* DeclBody :) -> (+ Modifier* DeclDeclarative SubClause* DeclBody +)
+
+	BraceDecl(: Modifier* StatDeclarative SubClause* BlockStat :) -> (+ Modifier* StatDeclarative SubClause* BlockStat +)
+
+	CompileClause(: ID ( {QuotedString ","}* ) ; :)   -> (+ ID "(" {QuotedString ","}* ")" ";" +)
+
+	ConceptClauseArgument(: Type :)                   -> (+ Type +)
+
+	ConceptExpr(: ConceptExpr * ConceptExpr :)        -> (+ ConceptExpr "*" ConceptExpr +)
+
+	ConceptExpr(: ConceptExpr ** ConceptExpr :)       -> (+ ConceptExpr "**" ConceptExpr +)
+
+	ConceptExpr(: ConceptExpr + ConceptExpr :)        -> (+ ConceptExpr "+" ConceptExpr +)
+
+	ConceptExpr(: ConceptExpr ++ ConceptExpr :)       -> (+ ConceptExpr "++" ConceptExpr +)
+
+	ConceptExpr(: ConceptExpr @@ ConceptExpr :)       -> (+ ConceptExpr "@@" ConceptExpr +)
+
+	ConceptExpr(: ConceptExpr Morphism :)             -> (+ ConceptExpr Morphism +)
+
+	ConceptExpr(: ConceptExpr times ConceptExpr :)    -> (+ ConceptExpr times ConceptExpr +)
+
+	ConceptExpr(: DeclBody :)                         -> (+ DeclBody +)
+
+	ConceptExpr(: Name :)                             -> (+ Name +)
+
+	ConceptExpr(: signature ConceptExpr :)            -> (+ signature ConceptExpr +)
+
+	ConsSpec(: Identifier ( {DataRep ","}* ) :)       -> (+ Identifier "(" {DataRep ","}* ")" +)
+
+	ConsSpec(: Identifier :)                          -> (+ Identifier +)
+
+	DataRep(: DecNumeral .. DecNumeral ; :)           -> (+ DecNumeral ".." DecNumeral ";" +)
+
+	DataRep(: struct { Decl* } :)                     -> (+ struct "{" Decl* "}" +)
+
+	DataRep(: type Type ; :)                          -> (+ type Type ";" +)
+
+	DataRep(: union { Decl* } :)                      -> (+ union "{" Decl* "}" +)
+
+	DataRep(: {ConsSpec ","}* ; :)                    -> (+ {ConsSpec ","}* ";" +)
+
+	Decl(: ; :)                                       -> (+ ";" +)
+
+	Decl(: ExprDeclarative SubClause* ; :)            -> (+ ExprDeclarative SubClause* ";" +)
+
+	Decl(: Modifier* TypeDeclarative SubClause* = Type ; :) -> (+ Modifier* TypeDeclarative SubClause* "=" Type ";" +)
+
+	Decl(: Modifier* concept Identifier SubClause* = ConceptExpr :) -> (+ Modifier* concept Identifier SubClause* "=" ConceptExpr +)
+
+	Decl(: Modifier* concept Identifier SubClause* DeclBody :) -> (+ Modifier* concept Identifier SubClause* DeclBody +)
+
+	Decl(: Modifier* implementation Identifier SubClause* = ImplExpr :) -> (+ Modifier* implementation Identifier SubClause* "=" ImplExpr +)
+
+	Decl(: Modifier* implementation Identifier SubClause* ImplExpr :) -> (+ Modifier* implementation Identifier SubClause* ImplExpr +)
+
+	Decl(: Modifier* library Identifier SubClause* = ImplExpr :) -> (+ Modifier* library Identifier SubClause* "=" ImplExpr +)
+
+	Decl(: StatDeclarative SubClause* ; :)            -> (+ StatDeclarative SubClause* ";" +)
+
+	Decl(: TypeDeclarative SubClause* ; :)            -> (+ TypeDeclarative SubClause* ";" +)
+
+	Decl(: free TypeName by {FunClause ","}* ; :)     -> (+ free TypeName by {FunClause ","}* ";" +)
+
+	Decl(: generate TypeName by {Expr ","}* ; :)      -> (+ generate TypeName by {Expr ","}* ";" +)
+
+	Decl(: generate TypeName by {FunClause ","}* ; :) -> (+ generate TypeName by {FunClause ","}* ";" +)
+
+	Decl(: partition TypeName by {FunClause ","}* ; :) -> (+ partition TypeName by {FunClause ","}* ";" +)
+
+	Decl(: requires {ConceptExpr ","}+ ; :)           -> (+ requires {ConceptExpr ","}+ ";" +)
+
+	Decl(: satisfaction Identifier SubClause* = ConceptExpr WithClause? models ConceptExpr :) -> (+ satisfaction Identifier SubClause* "=" ConceptExpr WithClause? models ConceptExpr +)
+
+	Decl(: satisfaction Identifier SubClause* = on ConceptExpr WithClause? models ConceptExpr :) -> (+ satisfaction Identifier SubClause* "=" on ConceptExpr WithClause? models ConceptExpr +)
+
+	DeclBody(: { Decl* } :)                           -> (+ "{" Decl* "}" +)
+
+	Expr(: ( {Expr ","}* ) :)                         -> (+ "(" {Expr ","}* ")" +)
+
+	Expr(: : Type :)                                  -> (+ ":" Type +)
+
+	Expr(: BTNOT Expr :)                              -> (+ BTNOT Expr +)
+
+	Expr(: Expr . DecNumeral :)                       -> (+ Expr "." DecNumeral +)
+
+	Expr(: Expr . Identifier :)                       -> (+ Expr "." Identifier +)
+
+	Expr(: Expr ADDOP Expr :)                         -> (+ Expr ADDOP Expr +)
+
+	Expr(: Expr BITOR Expr :)                         -> (+ Expr BITOR Expr +)
+
+	Expr(: Expr BTAND Expr :)                         -> (+ Expr BTAND Expr +)
+
+	Expr(: Expr BTXOR Expr :)                         -> (+ Expr BTXOR Expr +)
+
+	Expr(: Expr CMPOP Expr :)                         -> (+ Expr CMPOP Expr +)
+
+	Expr(: Expr EQUOP Expr :)                         -> (+ Expr EQUOP Expr +)
+
+	Expr(: Expr LGAND Expr :)                         -> (+ Expr LGAND Expr +)
+
+	Expr(: Expr LGIMP Expr :)                         -> (+ Expr LGIMP Expr +)
+
+	Expr(: Expr LOGOR Expr :)                         -> (+ Expr LOGOR Expr +)
+
+	Expr(: Expr MULOP Expr :)                         -> (+ Expr MULOP Expr +)
+
+	Expr(: Expr RNGOP Expr :)                         -> (+ Expr RNGOP Expr +)
+
+	Expr(: Expr SHFOP Expr :)                         -> (+ Expr SHFOP Expr +)
+
+	Expr(: Expr SUBST Expr :)                         -> (+ Expr SUBST Expr +)
+
+	Expr(: Expr [ {Expr ","}* ] :)                    -> (+ Expr "[" {Expr ","}* "]" +)
+
+	Expr(: Expr in Expr :)                            -> (+ Expr in Expr +)
+
+	Expr(: Expr not in Expr :)                        -> (+ Expr not in Expr +)
+
+	Expr(: Fun ( {Expr ","}* ) :)                     -> (+ Fun "(" {Expr ","}* ")" +)
+
+	Expr(: LGNOT Expr :)                              -> (+ LGNOT Expr +)
+
+	Expr(: Literal :)                                 -> (+ Literal +)
+
+	Expr(: NEGOP Expr :)                              -> (+ NEGOP Expr +)
+
+	Expr(: Name :)                                    -> (+ Name +)
+
+	Expr(: Type $ { {InitSpec ","}* } :)              -> (+ Type "$" "{" {InitSpec ","}* "}" +)
+
+	Expr(: Type { {InitSpec ","}* } :)                -> (+ Type "{" {InitSpec ","}* "}" +)
+
+	Expr(: [ {Expr ","}* ] :)                         -> (+ "[" {Expr ","}* "]" +)
+
+	Expr(: [ {Expr ","}* | Expr ] :)                  -> (+ "[" {Expr ","}* "|" Expr "]" +)
+
+	Expr(: _ :)                                       -> (+ "_" +)
+
+	Expr(: if Expr then Expr else Expr end :)         -> (+ if Expr then Expr else Expr end +)
+
+	Expr(: { Stat* } :)                               -> (+ "{" Stat* "}" +)
+
+	Fun(: FunName :)                                  -> (+ FunName +)
+
+	FunClause(: congruence FunctionParamList :)       -> (+ congruence FunctionParamList +)
+
+	FunClause(: dataInvariant FunctionParamList :)    -> (+ "dataInvariant" FunctionParamList +)
+
+	FunClause(: define FunName : Type :)              -> (+ define FunName ":" Type +)
+
+	FunClause(: function FunIdentifier FunctionParamList : Type :) -> (+ function FunIdentifier FunctionParamList ":" Type +)
+
+	FunctionParam(: Type :)                           -> (+ Type +)
+
+	FunctionParam(: VarIdentifier : Type :)           -> (+ VarIdentifier ":" Type +)
+
+	FunctionParamList(: ( {FunctionParam ","}* ) :)   -> (+ "(" {FunctionParam ","}* ")" +)
+
+	GuardClause(: guard Expr :)                       -> (+ guard Expr +)
+
+	Identifier(: ID :)                                -> (+ ID +)
+
+	ImplExpr(: DeclBody :)                            -> (+ DeclBody +)
+
+	ImplExpr(: ImplExpr * ImplExpr :)                 -> (+ ImplExpr "*" ImplExpr +)
+
+	ImplExpr(: ImplExpr ** ImplExpr :)                -> (+ ImplExpr "**" ImplExpr +)
+
+	ImplExpr(: ImplExpr + ImplExpr :)                 -> (+ ImplExpr "+" ImplExpr +)
+
+	ImplExpr(: ImplExpr ++ ImplExpr :)                -> (+ ImplExpr "++" ImplExpr +)
+
+	ImplExpr(: ImplExpr @ ImplExpr :)                 -> (+ ImplExpr "@" ImplExpr +)
+
+	ImplExpr(: ImplExpr @@ ImplExpr :)                -> (+ ImplExpr "@@" ImplExpr +)
+
+	ImplExpr(: ImplExpr Morphism :)                   -> (+ ImplExpr Morphism +)
+
+	ImplExpr(: ImplExpr times ImplExpr :)             -> (+ ImplExpr times ImplExpr +)
+
+	ImplExpr(: Name :)                                -> (+ Name +)
+
+	ImplExpr(: external Identifier Name defines ImplExpr :) -> (+ external Identifier Name defines ImplExpr +)
+
+	ImplExpr(: external Identifier Name on ConceptExpr defines ImplExpr :) -> (+ external Identifier Name on ConceptExpr defines ImplExpr +)
+
+	ImplExpr(: on ConceptExpr defines ImplExpr :)     -> (+ on ConceptExpr defines ImplExpr +)
+
+	ImportClause(: Name :)                            -> (+ Name +)
+
+	ImportClause(: module Name :)                     -> (+ module Name +)
+
+	ImportClause(: module Name = Name :)              -> (+ module Name "=" Name +)
+
+	InitSpec(: Identifier := Expr :)                  -> (+ Identifier ":=" Expr +)
+
+	LetClause(: var Identifier : Type = Expr ; :)     -> (+ var Identifier ":" Type "=" Expr ";" +)
+
+	Literal(: BinNumeral :)                           -> (+ BinNumeral +)
+
+	Literal(: DecNumeral :)                           -> (+ DecNumeral +)
+
+	Literal(: FloatNumeral :)                         -> (+ FloatNumeral +)
+
+	Literal(: HexNumeral :)                           -> (+ HexNumeral +)
+
+	Literal(: OctNumeral :)                           -> (+ OctNumeral +)
+
+	ModuleClause(: compile " String " { CompileClause* } :) -> (+ compile """ String """ "{" CompileClause* "}" +)
+
+	ModuleClause(: imports {ImportClause ","}* :)     -> (+ imports {ImportClause ","}* +)
+
+	ModuleClause(: language {Name ","}* :)            -> (+ language {Name ","}* +)
+
+	ModuleClause(: requires {RequiresClause ","}* :)  -> (+ requires {RequiresClause ","}* +)
+
+	ModuleHead(:  :)                                  -> (+  +)
+
+	ModuleHead(: module Name ModuleClause* ; :)       -> (+ module Name ModuleClause* ";" +)
+
+	MorphClause(: Decl :)                             -> (+ Decl +)
+
+	MorphClause(: ImplExpr :)                         -> (+ ImplExpr +)
+
+	MorphClause(: Name => Name :)                     -> (+ Name "=>" Name +)
+
+	MorphClause(: protect FunClause by Expr :)        -> (+ protect FunClause by Expr +)
+
+	MorphClause(: protect FunClause guard Expr :)     -> (+ protect FunClause guard Expr +)
+
+	MorphClause(: { (MorphClause ";")* } :)           -> (+ "{" (MorphClause ";")* "}" +)
+
+	MorphClause(: { MorphClause* } :)                 -> (+ "{" MorphClause* "}" +)
+
+	Morphism(: [ {MorphClause ","}* ] :)              -> (+ "[" {MorphClause ","}* "]" +)
+
+	Morphism(: morphism MorphClause :)                -> (+ morphism MorphClause +)
+
+	Morphism(: protect FunClause by Expr :)           -> (+ protect FunClause by Expr +)
+
+	Morphism(: protect FunClause guard Expr :)        -> (+ protect FunClause guard Expr +)
+
+	Name(: ID :)                                      -> (+ ID +)
+
+	Name(: Name . ID :)                               -> (+ Name "." ID +)
+
+	ParamMode(: del :)                                -> (+ del +)
+
+	ParamMode(: exp :)                                -> (+ exp +)
+
+	ParamMode(: giv :)                                -> (+ giv +)
+
+	ParamMode(: nrm :)                                -> (+ nrm +)
+
+	ParamMode(: obs :)                                -> (+ obs +)
+
+	ParamMode(: out :)                                -> (+ out +)
+
+	ParamMode(: upd :)                                -> (+ upd +)
+
+	PredClause(: predicate FunIdentifier FunctionParamList :) -> (+ predicate FunIdentifier FunctionParamList +)
+
+	ProcClause(: congruence ProcedureParamList :)     -> (+ congruence ProcedureParamList +)
+
+	ProcClause(: dataInvariant ProcedureParamList :)  -> (+ "dataInvariant" ProcedureParamList +)
+
+	ProcClause(: procedure ProcIdentifier ProcedureParamList :) -> (+ procedure ProcIdentifier ProcedureParamList +)
+
+	ProcIdentifier(: _=_ :)                           -> (+ "_=_" +)
+
+	ProcName(: Identifier :)                          -> (+ Identifier +)
+
+	ProcedureParam(: Identifier : Type :)             -> (+ Identifier ":" Type +)
+
+	ProcedureParam(: ParamMode : Type :)              -> (+ ParamMode ":" Type +)
+
+	ProcedureParam(: ParamMode VarIdentifier : Type :) -> (+ ParamMode VarIdentifier ":" Type +)
+
+	ProcedureParamList(: ( {ProcedureParam ","}* ) :) -> (+ "(" {ProcedureParam ","}* ")" +)
+
+	ProdType(: Type , ProdType :)                     -> (+ Type "," ProdType +)
+
+	Program(: ModuleHead TopDecl* :)                  -> (+ ModuleHead TopDecl* +)
+
+	QuotedString(: " String " :)                      -> (+ """ String """ +)
+
+	RequiresClause(: Identifier < {ConceptClauseArgument ","}* > :) -> (+ Identifier "<" {ConceptClauseArgument ","}* ">" +)
+
+	SemiDecl(: Modifier* ExprDeclarative SubClause* = Expr ; :) -> (+ Modifier* ExprDeclarative SubClause* "=" Expr ";" +)
+
+	Stat(: ; :)                                       -> (+ ";" +)
+
+	Stat(: Expr . Identifier = Expr ; :)              -> (+ Expr "." Identifier "=" Expr ";" +)
+
+	Stat(: Identifier = Expr ; :)                     -> (+ Identifier "=" Expr ";" +)
+
+	Stat(: Identifier [ {Expr ","}+ ] = Expr ; :)     -> (+ Identifier "[" {Expr ","}+ "]" "=" Expr ";" +)
+
+	Stat(: assert Expr AssertClause* ; :)             -> (+ assert Expr AssertClause* ";" +)
+
+	Stat(: break ; :)                                 -> (+ break ";" +)
+
+	Stat(: call ProcName ( {Expr ","}* ) ; :)         -> (+ call ProcName "(" {Expr ","}* ")" ";" +)
+
+	Stat(: for Identifier in Expr Stat :)             -> (+ for Identifier in Expr Stat +)
+
+	Stat(: for Identifier in Expr do Stat* end :)     -> (+ for Identifier in Expr do Stat* end +)
+
+	Stat(: if ( Expr ) { Stat* } :)                   -> (+ if "(" Expr ")" "{" Stat* "}" +)
+
+	Stat(: if ( Expr ) { Stat* } else { Stat* } :)    -> (+ if "(" Expr ")" "{" Stat* "}" else "{" Stat* "}" +)
+
+	Stat(: if Expr then Stat* else Stat* end :)       -> (+ if Expr then Stat* else Stat* end +)
+
+	Stat(: if Expr then Stat* end :)                  -> (+ if Expr then Stat* end +)
+
+	Stat(: let LetClause* in Stat* end :)             -> (+ let LetClause* in Stat* end +)
+
+	Stat(: open {Identifier ","}* in Stat* end :)     -> (+ open {Identifier ","}* in Stat* end +)
+
+	Stat(: print {Expr ","}* , ; :)                   -> (+ print {Expr ","}* "," ";" +)
+
+	Stat(: print {Expr ","}* ; :)                     -> (+ print {Expr ","}* ";" +)
+
+	Stat(: return ; :)                                -> (+ return ";" +)
+
+	Stat(: return Expr ; :)                           -> (+ return Expr ";" +)
+
+	Stat(: var Identifier : Type ; :)                 -> (+ var Identifier ":" Type ";" +)
+
+	Stat(: var Identifier : Type = Expr ; :)          -> (+ var Identifier ":" Type "=" Expr ";" +)
+
+	Stat(: var Identifier ; :)                        -> (+ var Identifier ";" +)
+
+	Stat(: var Identifier = Expr ; :)                 -> (+ var Identifier "=" Expr ";" +)
+
+	Stat(: while Expr do Stat* end :)                 -> (+ while Expr do Stat* end +)
+
+	Stat(: yield Expr ; :)                            -> (+ yield Expr ";" +)
+
+	StringLiteral(: " String " :)                     -> (+ """ String """ +)
+
+	SubClause(: default ( {Identifier ","}* ) :)      -> (+ default "(" {Identifier ","}* ")" +)
+
+	SubClause(: morphism MorphClause :)               -> (+ morphism MorphClause +)
+
+	SubClause(: opens ( {Identifier ","}* ) :)        -> (+ opens "(" {Identifier ","}* ")" +)
+
+	SubClause(: protect FunClause by Expr :)          -> (+ protect FunClause by Expr +)
+
+	SubClause(: protect FunClause guard Expr :)       -> (+ protect FunClause guard Expr +)
+
+	Type(: ( ) :)                                     -> (+ "(" ")" +)
+
+	Type(: ( ProdType ) :)                            -> (+ "(" ProdType ")" +)
+
+	Type(: Name :)                                    -> (+ Name +)
+
+	Type(: Type | Type :)                             -> (+ Type "|" Type +)
+
+	Type(: struct DeclBody :)                         -> (+ struct DeclBody +)
+
+	TypeClause(: type TypeIdentifier :)               -> (+ type TypeIdentifier +)
+
+	Var(: Name : Type :)                              -> (+ Name ":" Type +)
+
+	VarClause(: var VarIdentifier : Type :)           -> (+ var VarIdentifier ":" Type +)
+
+	WithClause(: with ImplExpr :)                     -> (+ with ImplExpr +)
+
+
+

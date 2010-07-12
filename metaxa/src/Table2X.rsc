@@ -5,6 +5,8 @@ import XaLib;
 import XaTree;
 import String;
 import Node;
+import List;
+import Set;
 
 data RuntimeException = WrongParseTableFormatError(loc location);
 
@@ -25,6 +27,7 @@ public void generateFromSyntax(str language, loc location) {
 	map[str,str] ppTable = ();
 	set[str] deprecated = {};
 	list[str] astDefs = [];
+	set[str] synMap = {};
 	if(list[value] labels := tree[2]) {
 		for("label"(p, _) <- labels) {
 			switch(p) {
@@ -83,6 +86,7 @@ public void generateFromSyntax(str language, loc location) {
 							
 								
 						astDefs += getADT(lhs, rhs, attrs);
+						synMap += getSyntaxMapping(lhs, rhs, attrs);
 					}
 					//else
 					//	println(getInj(lhs, rhs, attrs));
@@ -103,6 +107,9 @@ public void generateFromSyntax(str language, loc location) {
 		+ "import static org.magnolialang.xatree.XaTreeFactory.*;\n\n"
 		+ "class <language>SkinTable {\n\tpublic static Map\<String,IList\> getMap() {\n"
 		+ "\t\tMap\<String,IList\> tbl = new HashMap\<String,IList\>();\n\n<javaPP>\t\treturn tbl;\n\t}\n}\n");
+	mxaFile = location;
+	mxaFile.path = replaceLast(location.path, "/[^/]*", "/<language>Mapping.mxa");
+	writeFile(mxaFile, "language module <language>\n\nsyntax skin\n\n<strJoin(sort(toList(synMap)),"")>\n\n");	
 }
 
 public node toNode(value v) {
@@ -203,8 +210,36 @@ public str getSyn(list[value] lhs, value rhs, list[value] attrs) {
 	}
 	
 	return "<pTblSortName(rhs)> ::= <strJoin(syn, "")>"; 
-
 }
+
+public str getSyntaxMapping(list[value] lhs, value rhs, list[value] attrs) {
+	list[str] lhsPP = [];
+	list[str] rhsPP = [];
+	int chld = 0;
+	
+	for(sym <- lhs) {
+		switch(sym) {
+			case "lit"(lit): {
+				if(/^[a-z]+$/ := lit)
+					rhsPP += "<lit>";
+				else
+					rhsPP += "\"<lit>\"";
+				lhsPP += "<lit>";
+			}
+			case "cf"("opt"("layout"())): {
+				lhsPP += " ";
+				rhsPP += " ";
+			}
+			default: {
+				lhsPP += pTblSortName(sym);
+				rhsPP += pTblSortName(sym);
+			}
+		}
+	}
+	
+	return left("\t<pTblSortName(rhs)>(: <strJoin(lhsPP, "")> :)", 50) + " -\> (+ <strJoin(rhsPP, "")> +)\n\n";
+}
+
 public str pTblSortName(value sym) {
 	if(node n := sym) {
 		switch(n) {

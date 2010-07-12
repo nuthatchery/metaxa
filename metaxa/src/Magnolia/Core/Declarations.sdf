@@ -91,9 +91,22 @@ exports
 
 	"external" -> SubClause
 	
-	"default" -> Modifier
-	
-	"abstract" -> Modifier
+	"protect" -> Modifier	{cons("ProtectModifier")}
+
+%%% Declaration Attributes
+
+  sorts
+        AttrClause Attribute
+
+  context-free syntax
+
+    "[" {Attribute ","}* "]"    -> AttrClause           {cons("Attrs")}
+
+    AttrClause -> SubClause
+
+    Name "(" {Expr ","}* ")" -> Attribute               {cons("Attr")}
+
+
 	
 %%% Procedure Declarations
   sorts
@@ -132,6 +145,10 @@ exports
 	Identifier -> FunIdentifier
 	
 	Name -> FunName
+	
+	"guard" Expr -> GuardClause {cons("Guard")}
+	
+	GuardClause -> SubClause
 	
   lexical restrictions
 
@@ -267,214 +284,3 @@ exports
 
     "type"		-/- [A-Za-z\_\$0-9]
 
-%%% Concepts and implementations
-
-  sorts 
-	 DeclClause
-
-  context-free syntax
-
-    Modifier* "concept" Identifier SubClause* "=" ConceptExpr		-> Decl {cons("ConceptClause")}
-%%    "theorem" Identifier		-> DeclClause {cons("ConceptClause")}
-    Modifier* "implementation" Identifier SubClause* "=" ImplExpr -> Decl {cons("ImplClause")}
- 
- 	Modifier* "library" Identifier SubClause* "=" ImplExpr	-> Decl {cons("Library")}
-
-    Modifier* "concept" Identifier SubClause* DeclBody		-> Decl {deprecated("Add '=' before body"), cons("ConceptClause")}
-
-    Modifier* "implementation" Identifier SubClause* ImplExpr -> Decl {deprecated("Add '=' before body"), cons("ImplClause")}
- 
-    DeclClause -> DeclDeclarative
-
-  lexical restrictions
-
-    "concept"		-/- [A-Za-z\_\$0-9]
-%%    "theorem"		-/- [A-Za-z\_\$0-9]
-    "implementation"		-/- [A-Za-z\_\$0-9]
-    "library"		-/- [A-Za-z\_\$0-9]
-
-%%% Declaration Attributes
-
-  sorts
-	AttrClause Attribute
-
-  context-free syntax
-
-    "[" {Attribute ","}* "]"	-> AttrClause		{cons("Attrs")}
-
-    AttrClause -> SubClause
-
-    Name "(" {Expr ","}* ")" -> Attribute		{cons("Attr")}
-
-
-%%% Guarding
-
-  sorts
-	GuardClause
-
-  context-free syntax
-
-   "guard" Expr -> GuardClause {cons("Guard")}
-
-   GuardClause -> SubClause
-
-%%% Requires
-
-  sorts 
-    ConceptExpr MorphClause
-
-  context-free syntax
-
-    "requires" {ConceptExpr ","}+ ";" -> Decl	{cons("Requires")}
-
-%% TODO: What are these supposed to be?
-	"preserve" DeclBody -> Decl {todo("preserve -- Grammar needs refinement")}
-	
-	"congruence" DeclBody -> Decl {todo("congruence -- Grammar needs refinement")}
-	
-	"preserve" DeclBody "on" ConceptExpr -> Decl {todo("preserve/on -- Grammar needs refinement")}
-	
-	"congruence" DeclBody "on" ConceptExpr -> Decl {todo("congruence/on -- Grammar needs refinement")}
-	
-
-  lexical restrictions
-
-    "requires"		-/- [A-Za-z\_\$0-9]
-    "morphism"		-/- [A-Za-z\_\$0-9]
-
-%%% Generated & Free
-
-  context-free syntax
-
-    "partition" TypeName "by" {FunClause ","}* ";" -> Decl {cons("Partition")}
-
-    "generate" TypeName "by" {FunClause ","}* ";" -> Decl {cons("Generate")}
-
-    "generate" TypeName "by" {Expr ","}* ";" -> Decl {cons("Generate")}
-
-    "free" TypeName "by" {FunClause ","}* ";" -> Decl {cons("Free")}
-
-%%% Satisfaction
-
-  sorts
-    ImplExpr ConceptExpr Morphism MorphClause
-
-  context-free syntax
-
-
-    "satisfaction" Identifier SubClause* "=" ConceptExpr WithClause? "models" ConceptExpr -> Decl {cons("ModelsImpl")}
-
-    "satisfaction" Identifier SubClause* "=" "on" ConceptExpr WithClause? "models" ConceptExpr -> Decl {deprecated("Drop 'on'"), cons("ModelsImpl")}
-    
-    "with" ImplExpr -> WithClause {cons("WithClause")}
-
-    Name -> ConceptExpr {cons("Concept")}
-
-    DeclBody -> ConceptExpr {cons("ConceptBody")}
-    
-    "signature" ConceptExpr -> ConceptExpr {todo("signature -- Bruker vi denne fremdeles?"),cons("SignatureOf")}
-
-    ConceptExpr Morphism -> ConceptExpr {cons("MorphedConcept")}
-
-    Name -> ImplExpr  {cons("Impl")}
-
-    ImplExpr Morphism -> ImplExpr  {cons("ImplMorph")}
-
-    DeclBody -> ImplExpr  {cons("ImplBody")}
-    
-    %% TODO: Needs refinement
-    
-    "external" Identifier Name "defines" ImplExpr -> ImplExpr {cons("ExternalLib")}
-
-    "external" Identifier Name "on" ConceptExpr "defines" ImplExpr -> ImplExpr {cons("ExternalLib")}
-
-    "on" ConceptExpr "defines" ImplExpr -> ImplExpr {cons("OnDefines")}
-    
-%% Morphisms
-context-free syntax
-
-    "morphism" MorphClause -> Morphism  {cons("Morphism")}
-
-    "morphism" MorphClause -> SubClause {cons("Morphism")}
-
-	"{" MorphClause* "}" -> MorphClause {todo("clean up syntax for list of morph clauses"), cons("ImplMorphism")}
-	
-	"{" (MorphClause ";")* "}" -> MorphClause {todo("clean up syntax for list of morph clauses"), cons("ImplMorphism")}
-
-    "[" {MorphClause ","}* "]" -> Morphism {cons("Morphisms")}
-
-    Name "=>" Name -> MorphClause  {cons("Rename")}
-
-    TypeClause "=" Type -> MorphClause	{cons("Morphism")}
-
-    FunClause "=" Expr -> MorphClause	{cons("Morphism")}
-
-    PredClause "=" Expr -> MorphClause	{cons("Morphism")}
-
-    "protect" FunClause "guard" Expr -> Morphism	{cons("Protect")}
-
-    "protect" FunClause "guard" Expr -> MorphClause	{cons("Protect")}
-
-    "protect" FunClause "guard" Expr -> SubClause	{cons("Protect")}
-
-    "protect" FunClause "by" Expr -> Morphism	{deprecated("Use 'guard' instead of 'by'"),cons("Protect")}
-
-    "protect" FunClause "by" Expr -> MorphClause	{deprecated("Use 'guard' instead of 'by'"),cons("Protect")}
-
-    "protect" FunClause "by" Expr -> SubClause	{deprecated("Use 'guard' instead of 'by'"),cons("Protect")}
-
-%% ImplExpr
-context-free syntax
-
-	ImplExpr "@" ImplExpr 		-> ImplExpr {left, cons("At")}
-	ImplExpr "@@" ImplExpr 		-> ImplExpr {left, cons("AtAt")}
-	ImplExpr "*" ImplExpr 		-> ImplExpr {left, cons("Star")}
-	ImplExpr "**" ImplExpr 		-> ImplExpr {left, cons("StarStar")}
-	ImplExpr "+" ImplExpr 		-> ImplExpr {left, cons("Plus")}
-	ImplExpr "++" ImplExpr 		-> ImplExpr {left, cons("PlusPlus")}
-	ImplExpr "times" ImplExpr 	-> ImplExpr {left, cons("Times")}
-	"(" ImplExpr ")" 			-> ImplExpr {bracket}
-
-	ConceptExpr "@" ConceptExpr 	-> ConceptExpr {left, cons("At")}
-	ConceptExpr "@@" ConceptExpr 	-> ConceptExpr {left, cons("AtAt")}
-	ConceptExpr "*" ConceptExpr 	-> ConceptExpr {left, cons("Star")}
-	ConceptExpr "**" ConceptExpr 	-> ConceptExpr {left, cons("StarStar")}
-	ConceptExpr "+" ConceptExpr 	-> ConceptExpr {left, cons("Plus")}
-	ConceptExpr "++" ConceptExpr 	-> ConceptExpr {left, cons("PlusPlus")}
-	ConceptExpr "times" ConceptExpr -> ConceptExpr {left, cons("Times")}
-	"(" ConceptExpr ")" 			-> ConceptExpr {bracket}
-
-context-free priorities
-
-	ImplExpr Morphism			-> ImplExpr
->
-	ImplExpr "times" ImplExpr 	-> ImplExpr
->
-{	ImplExpr "*" ImplExpr 		-> ImplExpr
-	ImplExpr "**" ImplExpr 		-> ImplExpr
-}
->
-{	ImplExpr "@" ImplExpr 		-> ImplExpr
-	ImplExpr "@@" ImplExpr 		-> ImplExpr
-	ImplExpr "+" ImplExpr 		-> ImplExpr
-	ImplExpr "++" ImplExpr 		-> ImplExpr
-}
-
-context-free priorities
-
-	ConceptExpr Morphism			-> ConceptExpr
->
-	ConceptExpr "times" ConceptExpr 	-> ConceptExpr
->
-{	ConceptExpr "*" ConceptExpr 		-> ConceptExpr
-	ConceptExpr "**" ConceptExpr 		-> ConceptExpr
-}
->
-{	ConceptExpr "@" ConceptExpr 		-> ConceptExpr
-	ConceptExpr "@@" ConceptExpr 		-> ConceptExpr
-	ConceptExpr "+" ConceptExpr 		-> ConceptExpr
-	ConceptExpr "++" ConceptExpr 		-> ConceptExpr
-}
->
-	"signature" ConceptExpr				-> ConceptExpr
-	

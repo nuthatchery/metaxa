@@ -1,0 +1,141 @@
+%% Declarations.sdf is part of Magnolia
+%%
+%% Copyright (C) 2008,2009  Anya Helene Bagge
+%% Copyright (C) 2008,2009  University of Bergen
+%%
+%% Contact: <magnolia@magnolia-lang.org>
+%%
+%% This program is free software: you can redistribute it and/or modify
+%% it under the terms of the GNU General Public License as published by
+%% the Free Software Foundation, either version 3 of the License, or
+%% (at your option) any later version.
+%% 
+%% This program is distributed in the hope that it will be useful,
+%% but WITHOUT ANY WARRANTY; without even the implied warranty of
+%% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%% GNU General Public License for more details.
+%% 
+%% You should have received a copy of the GNU General Public License
+%% along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+%% This module defines the common declaration syntax for Magnolia. The main 
+%% non-terminal is
+%%
+%%   Decl -- a full, semicolon-terminated declaration.
+%%
+%% A declaration consists of one or more clauses. The main clause starts
+%% with a keyword identifying the declaration. Additional (subordinate)
+%% clauses follow the main clause, and declarations can commonly have
+%% zero or more of them, the exact kinds depending on the declaration.
+%%
+%%   _Clause   -- the main part of a declaration, should contain whatever
+%%       information uniquely identifies the declared symbol
+%%   _SubClause -- a sub-clause with additional information about a decl
+%%
+%% Some clauses additionally contain a list of specifiers.
+%%
+%%   _Spec   -- a particular item in clause
+%%
+%% The structure of a declaration is:
+%%
+%%  MainClause SubClauses Definition? -> Decl
+%%
+%% The AttrSubClause is common to all declarations, and is the place for
+%% any extra associated information that we do not want to create
+%% special syntax for.
+%%
+%% It may be preferable (for error management) to allow all subclauses for
+%% all declarations in the grammar, and then complain about them in the
+%% subsequent analysis.
+
+module Magnolia/BaseExt/Declarations
+
+
+exports
+
+%%% Declaration and definition sentences
+
+  sorts
+	Decl		SubClause
+	StatDeclarative ExprDeclarative
+	TypeDeclarative	%%DeclDeclarative 
+
+  %% Externals
+	BlockStat	Expr
+	Type		DataRep
+	Identifier
+
+  context-free syntax
+
+    Modifier* StatDeclarative SubClause* ";"
+	-> Decl
+		{cons("NoDefDecl")}
+
+    Modifier* ExprDeclarative SubClause* ";"
+	-> Decl
+		{cons("NoDefDecl")}
+
+    Modifier* TypeDeclarative SubClause* ";"
+	-> Decl
+		{cons("NoDefDecl")}
+
+%%    DeclDeclarative SubClause* ";"
+%%	-> Decl
+%%		{cons("NoDefDecl")}
+
+%%% Function Declarations
+  sorts
+    FunClause FunName
+
+  context-free syntax
+
+    "define" FunName ":"  Type
+	-> FunClause			{cons("FunClause")}
+
+
+    "dataInvariant" FunctionParamList
+	-> FunClause			{cons("DataInvariant")}
+
+    "dataInvariant" ProcedureParamList
+	-> ProcClause			{cons("DataInvariant")}
+
+    "congruence" FunctionParamList
+	-> FunClause			{prefer,cons("Congruence")}
+
+    "congruence" ProcedureParamList
+	-> ProcClause			{cons("Congruence")}
+
+
+    FunClause -> ExprDeclarative
+
+%%% Parameters and Parameter Modes
+  sorts
+	TypeParamList TypeParam
+	FunctionParamList FunctionParam
+	ProcedureParamList ProcedureParam
+	ParamMode
+
+  context-free syntax
+
+    Type			-> FunctionParam	{cons("AnonParam")}
+
+    Identifier ":" Type		-> ProcedureParam	{cons("ObsParam")}
+
+    ParamMode ":" Type		-> ProcedureParam	{cons("AnonParam")}
+
+%%% Declaration Attributes
+
+  sorts
+	AttrClause Attribute
+
+  context-free syntax
+
+    Identifier -> Attribute				{cons("Attr")}
+
+%%% Types and Classes
+
+  context-free syntax
+
+    "opens" "(" {Identifier ","}* ")"  -> SubClause {cons("Opens")}
+
+    "default" "(" {Identifier ","}* ")"  -> SubClause {cons("Default")}

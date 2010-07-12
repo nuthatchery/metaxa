@@ -1,75 +1,75 @@
 module MagnoliaAST
 
-data AST = MagnoliaTree(AST, AST);                                      // Program ::= ModuleHead TopDecl*
-data AST = ModuleHead(AST, AST);                                        // ModuleHead ::= "module" Name ModuleClause* ";"
-data AST = Name(AST);                                                   // Identifier ::= ID
-data AST = Name(AST);                                                   // Name ::= ID
-data AST = QName(AST, AST);                                             // Name ::= Name "." ID
-data AST = Type(AST);                                                   // Type ::= Name
+data AST = MagnoliaTree();                                              // Program ::=  
+data AST = ModuleHead();                                                // ModuleHead ::= "module"   ";"
+data AST = Name();                                                      // Identifier ::= 
+data AST = Name();                                                      // Name ::= 
+data AST = QName();                                                     // Name ::=  "." 
+data AST = Type();                                                      // Type ::= 
 data AST = NilType();                                                   // Type ::= "(" ")"
-data AST = AltType(AST, AST);                                           // Type ::= Type "|" Type
-data AST = ProdType(AST, AST);                                          // ProdType ::= Type "," ProdType
-data AST = Dummy(AST);                                                  // Type ::= "(" ProdType ")"
-data AST = Struct(AST);                                                 // Type ::= "struct" DeclBody
-data AST = Int(AST);                                                    // Literal ::= DecNumeral
-data AST = Real(AST);                                                   // Literal ::= FloatNumeral
-data AST = String(AST);                                                 // StringLiteral ::= """ String """
-data AST = Block(AST);                                                  // BlockStat ::= "{" Stat* "}"
+data AST = AltType();                                                   // Type ::=  "|" 
+data AST = ProdType();                                                  // ProdType ::=  "," 
+data AST = Dummy();                                                     // Type ::= "("  ")"
+data AST = Struct();                                                    // Type ::= "struct" 
+data AST = Int();                                                       // Literal ::= 
+data AST = Real();                                                      // Literal ::= 
+data AST = String();                                                    // StringLiteral ::= """  """
+data AST = Block();                                                     // BlockStat ::= "{"  "}"
 data AST = Nop();                                                       // Stat ::= ";"
-data AST = If(AST, AST, AST);                                           // Stat ::= "if" Expr "then" Stat* "else" Stat* "end"
-data AST = While(AST, AST);                                             // Stat ::= "while" Expr "do" Stat* "end"
-data AST = Open(AST, AST);                                              // Stat ::= "open" {Identifier ","}* "in" Stat* "end"
-data AST = For(AST, AST, AST);                                          // Stat ::= "for" Identifier "in" Expr "do" Stat* "end"
-data AST = Call(AST, AST);                                              // Stat ::= "call" ProcName "(" {Expr ","}* ")" ";"
-data AST = Proc(AST);                                                   // ProcName ::= Identifier
-data AST = Yield(AST);                                                  // Stat ::= "yield" Expr ";"
+data AST = If();                                                        // Stat ::= "if"  "then"  "else"  "end"
+data AST = While();                                                     // Stat ::= "while"  "do"  "end"
+data AST = Open();                                                      // Stat ::= "open"  "in"  "end"
+data AST = For();                                                       // Stat ::= "for"  "in"  "do"  "end"
+data AST = Call();                                                      // Stat ::= "call"  "("  ")" ";"
+data AST = Proc();                                                      // ProcName ::= 
+data AST = Yield();                                                     // Stat ::= "yield"  ";"
 data AST = Break();                                                     // Stat ::= "break" ";"
 data AST = Return();                                                    // Stat ::= "return" ";"
-data AST = Return(AST);                                                 // Stat ::= "return" Expr ";"
-data AST = Assign(AST, AST);                                            // Stat ::= Identifier "=" Expr ";"
-data AST = Let(AST, AST);                                               // Stat ::= "let" LetClause* "in" Stat* "end"
-data AST = VarDef(AST, AST, AST);                                       // LetClause ::= "var" Identifier ":" Type "=" Expr ";"
-data AST = Assert(AST, AST);                                            // Stat ::= "assert" Expr AssertClause* ";"
-data AST = By(AST);                                                     // AssertClause ::= "by" Expr
-data AST = By(AST);                                                     // AssertClause ::= "by" "simplify" Expr
+data AST = Return();                                                    // Stat ::= "return"  ";"
+data AST = Assign();                                                    // Stat ::=  "="  ";"
+data AST = Let();                                                       // Stat ::= "let"  "in"  "end"
+data AST = VarDef();                                                    // LetClause ::= "var"  ":"  "="  ";"
+data AST = Assert();                                                    // Stat ::= "assert"   ";"
+data AST = By();                                                        // AssertClause ::= "by" 
+data AST = By();                                                        // AssertClause ::= "by" "simplify" 
 data AST = QED();                                                       // AssertClause ::= "qed"
 data AST = Undefined();                                                 // Expr ::= "_"
-data AST = Var(AST, AST);                                               // Var ::= Name ":" Type
-data AST = Literal(AST);                                                // Expr ::= Literal
-data AST = Tuple(AST);                                                  // Expr ::= "(" {Expr ","}* ")"
-data AST = TypeExpr(AST);                                               // Expr ::= ":" Type
-data AST = Struct(AST, AST);                                            // Expr ::= Type "$" "{" {InitSpec ","}* "}"
-data AST = Struct(AST, AST);                                            // Expr ::= Type "{" {InitSpec ","}* "}"
-data AST = Field(AST, AST);                                             // InitSpec ::= Identifier ":=" Expr
-data AST = Apply(AST, AST);                                             // Expr ::= Fun "(" {Expr ","}* ")"
-data AST = Fun(AST);                                                    // Fun ::= FunName
-data AST = IfThenElseExpr(AST, AST, AST);                               // Expr ::= "if" Expr "then" Expr "else" Expr "end"
-data AST = BlockExpr(AST);                                              // Expr ::= "{" Stat* "}"
-data AST = ListCons(AST);                                               // Expr ::= "[" {Expr ","}* "]"
-data AST = ListCons(AST, AST);                                          // Expr ::= "[" {Expr ","}* "|" Expr "]"
-data AST = NumRep(AST, AST);                                            // DataRep ::= DecNumeral ".." DecNumeral ";"
-data AST = AliasType(AST);                                              // DataRep ::= "type" Type ";"
-data AST = StructRep(AST);                                              // DataRep ::= "struct" "{" Decl* "}"
-data AST = UnionRep(AST);                                               // DataRep ::= "union" "{" Decl* "}"
-data AST = TermRep(AST);                                                // DataRep ::= {ConsSpec ","}* ";"
-data AST = TermCons0(AST);                                              // ConsSpec ::= Identifier
-data AST = TermCons(AST, AST);                                          // ConsSpec ::= Identifier "(" {DataRep ","}* ")"
-data AST = DefDecl(AST, AST, AST, AST);                                 // BraceDecl ::= Modifier* StatDeclarative SubClause* BlockStat
-data AST = DefDecl(AST, AST, AST, AST);                                 // SemiDecl ::= Modifier* ExprDeclarative SubClause* "=" Expr ";"
-data AST = DefDecl(AST, AST, AST, AST);                                 // Decl ::= Modifier* TypeDeclarative SubClause* "=" Type ";"
-data AST = DefDecl(AST, AST, AST, AST);                                 // BraceDecl ::= Modifier* DeclDeclarative SubClause* DeclBody
-data AST = DeclBody(AST);                                               // DeclBody ::= "{" Decl* "}"
-data AST = ProcClause(AST, AST);                                        // ProcClause ::= "procedure" ProcIdentifier ProcedureParamList
+data AST = Var();                                                       // Var ::=  ":" 
+data AST = Literal();                                                   // Expr ::= 
+data AST = Tuple();                                                     // Expr ::= "("  ")"
+data AST = TypeExpr();                                                  // Expr ::= ":" 
+data AST = Struct();                                                    // Expr ::=  "$" "{"  "}"
+data AST = Struct();                                                    // Expr ::=  "{"  "}"
+data AST = Field();                                                     // InitSpec ::=  ":=" 
+data AST = Apply();                                                     // Expr ::=  "("  ")"
+data AST = Fun();                                                       // Fun ::= 
+data AST = IfThenElseExpr();                                            // Expr ::= "if"  "then"  "else"  "end"
+data AST = BlockExpr();                                                 // Expr ::= "{"  "}"
+data AST = ListCons();                                                  // Expr ::= "["  "]"
+data AST = ListCons();                                                  // Expr ::= "["  "|"  "]"
+data AST = NumRep();                                                    // DataRep ::=  ".."  ";"
+data AST = AliasType();                                                 // DataRep ::= "type"  ";"
+data AST = StructRep();                                                 // DataRep ::= "struct" "{"  "}"
+data AST = UnionRep();                                                  // DataRep ::= "union" "{"  "}"
+data AST = TermRep();                                                   // DataRep ::=  ";"
+data AST = TermCons0();                                                 // ConsSpec ::= 
+data AST = TermCons();                                                  // ConsSpec ::=  "("  ")"
+data AST = DefDecl();                                                   // BraceDecl ::=    
+data AST = DefDecl();                                                   // SemiDecl ::=    "="  ";"
+data AST = DefDecl();                                                   // Decl ::=    "="  ";"
+data AST = DefDecl();                                                   // BraceDecl ::=    
+data AST = DeclBody();                                                  // DeclBody ::= "{"  "}"
+data AST = ProcClause();                                                // ProcClause ::= "procedure"  
 data AST = Assign();                                                    // ProcIdentifier ::= "_=_"
-data AST = FunClause(AST, AST, AST);                                    // FunClause ::= "function" FunIdentifier FunctionParamList ":" Type
-data AST = PredClause(AST, AST);                                        // PredClause ::= "predicate" FunIdentifier FunctionParamList
-data AST = AxiomClause(AST, AST);                                       // AxiomClause ::= "axiom" Identifier FunctionParamList
-data AST = AxiomClause(AST, AST);                                       // AxiomClause ::= "theorem" Identifier FunctionParamList
-data AST = AxiomClause(AST, AST);                                       // AxiomClause ::= "proof" Identifier FunctionParamList
-data AST = Dummy(AST);                                                  // FunctionParamList ::= "(" {FunctionParam ","}* ")"
-data AST = Dummy(AST);                                                  // ProcedureParamList ::= "(" {ProcedureParam ","}* ")"
-data AST = Param(AST, AST);                                             // FunctionParam ::= VarIdentifier ":" Type
-data AST = Param(AST, AST, AST);                                        // ProcedureParam ::= ParamMode VarIdentifier ":" Type
+data AST = FunClause();                                                 // FunClause ::= "function"   ":" 
+data AST = PredClause();                                                // PredClause ::= "predicate"  
+data AST = AxiomClause();                                               // AxiomClause ::= "axiom"  
+data AST = AxiomClause();                                               // AxiomClause ::= "theorem"  
+data AST = AxiomClause();                                               // AxiomClause ::= "proof"  
+data AST = Dummy();                                                     // FunctionParamList ::= "("  ")"
+data AST = Dummy();                                                     // ProcedureParamList ::= "("  ")"
+data AST = Param();                                                     // FunctionParam ::=  ":" 
+data AST = Param();                                                     // ProcedureParam ::=   ":" 
 data AST = Obs();                                                       // ParamMode ::= "obs"
 data AST = Upd();                                                       // ParamMode ::= "upd"
 data AST = Out();                                                       // ParamMode ::= "out"
@@ -77,124 +77,123 @@ data AST = Exp();                                                       // Param
 data AST = Giv();                                                       // ParamMode ::= "giv"
 data AST = Del();                                                       // ParamMode ::= "del"
 data AST = Nrm();                                                       // ParamMode ::= "nrm"
-data AST = VarClause(AST, AST);                                         // VarClause ::= "var" VarIdentifier ":" Type
-data AST = TypeClause(AST);                                             // TypeClause ::= "type" TypeIdentifier
-data AST = ConceptClause(AST, AST, AST, AST);                           // Decl ::= Modifier* "concept" Identifier SubClause* "=" ConceptExpr
-data AST = ImplClause(AST, AST, AST, AST);                              // Decl ::= Modifier* "implementation" Identifier SubClause* "=" ImplExpr
-data AST = Library(AST, AST, AST, AST);                                 // Decl ::= Modifier* "library" Identifier SubClause* "=" ImplExpr
-data AST = ConceptClause(AST, AST, AST, AST);                           // Decl ::= Modifier* "concept" Identifier SubClause* DeclBody
-data AST = ImplClause(AST, AST, AST, AST);                              // Decl ::= Modifier* "implementation" Identifier SubClause* ImplExpr
-data AST = Attrs(AST);                                                  // AttrClause ::= "[" {Attribute ","}* "]"
-data AST = Attr(AST, AST);                                              // Attribute ::= Name "(" {Expr ","}* ")"
-data AST = Guard(AST);                                                  // GuardClause ::= "guard" Expr
-data AST = Requires(AST);                                               // Decl ::= "requires" {ConceptExpr ","}+ ";"
-data AST = Partition(AST, AST);                                         // Decl ::= "partition" TypeName "by" {FunClause ","}* ";"
-data AST = Generate(AST, AST);                                          // Decl ::= "generate" TypeName "by" {FunClause ","}* ";"
-data AST = Generate(AST, AST);                                          // Decl ::= "generate" TypeName "by" {Expr ","}* ";"
-data AST = Free(AST, AST);                                              // Decl ::= "free" TypeName "by" {FunClause ","}* ";"
-data AST = ModelsImpl(AST, AST, AST, AST, AST);                         // Decl ::= "satisfaction" Identifier SubClause* "=" ConceptExpr WithClause? "models" ConceptExpr
-data AST = ModelsImpl(AST, AST, AST, AST, AST);                         // Decl ::= "satisfaction" Identifier SubClause* "=" "on" ConceptExpr WithClause? "models" ConceptExpr
-data AST = WithClause(AST);                                             // WithClause ::= "with" ImplExpr
-data AST = Concept(AST);                                                // ConceptExpr ::= Name
-data AST = ConceptBody(AST);                                            // ConceptExpr ::= DeclBody
-data AST = SignatureOf(AST);                                            // ConceptExpr ::= "signature" ConceptExpr
-data AST = MorphedConcept(AST, AST);                                    // ConceptExpr ::= ConceptExpr Morphism
-data AST = Impl(AST);                                                   // ImplExpr ::= Name
-data AST = ImplMorph(AST, AST);                                         // ImplExpr ::= ImplExpr Morphism
-data AST = ImplBody(AST);                                               // ImplExpr ::= DeclBody
-data AST = ExternalLib(AST, AST, AST);                                  // ImplExpr ::= "external" Identifier Name "defines" ImplExpr
-data AST = ExternalLib(AST, AST, AST, AST);                             // ImplExpr ::= "external" Identifier Name "on" ConceptExpr "defines" ImplExpr
-data AST = OnDefines(AST, AST);                                         // ImplExpr ::= "on" ConceptExpr "defines" ImplExpr
-data AST = Morphism(AST);                                               // Morphism ::= "morphism" MorphClause
-data AST = Morphism(AST);                                               // SubClause ::= "morphism" MorphClause
-data AST = ImplMorphism(AST);                                           // MorphClause ::= "{" MorphClause* "}"
-data AST = ImplMorphism(AST);                                           // MorphClause ::= "{" (MorphClause ";")* "}"
-data AST = Morphisms(AST);                                              // Morphism ::= "[" {MorphClause ","}* "]"
-data AST = Rename(AST, AST);                                            // MorphClause ::= Name "=>" Name
-data AST = Morphism(AST, AST);                                          // MorphClause ::= TypeClause "=" Type
-data AST = Morphism(AST, AST);                                          // MorphClause ::= FunClause "=" Expr
-data AST = Morphism(AST, AST);                                          // MorphClause ::= PredClause "=" Expr
-data AST = Protect(AST, AST);                                           // Morphism ::= "protect" FunClause "guard" Expr
-data AST = Protect(AST, AST);                                           // MorphClause ::= "protect" FunClause "guard" Expr
-data AST = Protect(AST, AST);                                           // SubClause ::= "protect" FunClause "guard" Expr
-data AST = Protect(AST, AST);                                           // Morphism ::= "protect" FunClause "by" Expr
-data AST = Protect(AST, AST);                                           // MorphClause ::= "protect" FunClause "by" Expr
-data AST = Protect(AST, AST);                                           // SubClause ::= "protect" FunClause "by" Expr
-data AST = At(AST, AST);                                                // ImplExpr ::= ImplExpr "@" ImplExpr
-data AST = AtAt(AST, AST);                                              // ImplExpr ::= ImplExpr "@@" ImplExpr
-data AST = Star(AST, AST);                                              // ImplExpr ::= ImplExpr "*" ImplExpr
-data AST = StarStar(AST, AST);                                          // ImplExpr ::= ImplExpr "**" ImplExpr
-data AST = Plus(AST, AST);                                              // ImplExpr ::= ImplExpr "+" ImplExpr
-data AST = PlusPlus(AST, AST);                                          // ImplExpr ::= ImplExpr "++" ImplExpr
-data AST = Times(AST, AST);                                             // ImplExpr ::= ImplExpr "times" ImplExpr
-data AST = At(AST, AST);                                                // ConceptExpr ::= ConceptExpr "@" ConceptExpr
-data AST = AtAt(AST, AST);                                              // ConceptExpr ::= ConceptExpr "@@" ConceptExpr
-data AST = Star(AST, AST);                                              // ConceptExpr ::= ConceptExpr "*" ConceptExpr
-data AST = StarStar(AST, AST);                                          // ConceptExpr ::= ConceptExpr "**" ConceptExpr
-data AST = Plus(AST, AST);                                              // ConceptExpr ::= ConceptExpr "+" ConceptExpr
-data AST = PlusPlus(AST, AST);                                          // ConceptExpr ::= ConceptExpr "++" ConceptExpr
-data AST = Times(AST, AST);                                             // ConceptExpr ::= ConceptExpr "times" ConceptExpr
-data AST = Hex(AST);                                                    // Literal ::= HexNumeral
-data AST = Bin(AST);                                                    // Literal ::= BinNumeral
-data AST = Oct(AST);                                                    // Literal ::= OctNumeral
-data AST = BaseFor(AST, AST, AST);                                      // Stat ::= "for" Identifier "in" Expr Stat
-data AST = BasePrintLn(AST);                                            // Stat ::= "print" {Expr ","}* ";"
-data AST = BasePrint(AST);                                              // Stat ::= "print" {Expr ","}* "," ";"
-data AST = BaseVarDefTI(AST, AST, AST);                                 // Stat ::= "var" Identifier ":" Type "=" Expr ";"
-data AST = BaseVarDefI(AST, AST);                                       // Stat ::= "var" Identifier "=" Expr ";"
-data AST = BaseVarDefI(AST);                                            // Stat ::= "var" Identifier ";"
-data AST = BaseVarDefT(AST, AST);                                       // Stat ::= "var" Identifier ":" Type ";"
-data AST = DotOp(AST, AST);                                             // Expr ::= Expr "." Identifier
-data AST = BinOp(AST, AST, AST);                                        // Expr ::= Expr MULOP Expr
-data AST = BinOp(AST, AST, AST);                                        // Expr ::= Expr ADDOP Expr
-data AST = BinOp(AST, AST, AST);                                        // Expr ::= Expr SHFOP Expr
-data AST = BinOp(AST, AST, AST);                                        // Expr ::= Expr RNGOP Expr
-data AST = BinOp(AST, AST, AST);                                        // Expr ::= Expr CMPOP Expr
-data AST = In(AST, AST);                                                // Expr ::= Expr "in" Expr
-data AST = NotIn(AST, AST);                                             // Expr ::= Expr "not" "in" Expr
-data AST = BinOp(AST, AST, AST);                                        // Expr ::= Expr EQUOP Expr
-data AST = BinOp(AST, AST, AST);                                        // Expr ::= Expr BTAND Expr
-data AST = BinOp(AST, AST, AST);                                        // Expr ::= Expr BTXOR Expr
-data AST = BinOp(AST, AST, AST);                                        // Expr ::= Expr BITOR Expr
-data AST = BinOp(AST, AST, AST);                                        // Expr ::= Expr SUBST Expr
-data AST = BinOp(AST, AST, AST);                                        // Expr ::= Expr LGAND Expr
-data AST = BinOp(AST, AST, AST);                                        // Expr ::= Expr LOGOR Expr
-data AST = BinOp(AST, AST, AST);                                        // Expr ::= Expr LGIMP Expr
-data AST = Index(AST, AST);                                             // Expr ::= Expr "[" {Expr ","}* "]"
-data AST = PreOp(AST, AST);                                             // Expr ::= NEGOP Expr
-data AST = PreOp(AST, AST);                                             // Expr ::= BTNOT Expr
-data AST = PreOp(AST, AST);                                             // Expr ::= LGNOT Expr
-data AST = NoDefDecl(AST, AST);                                         // Decl ::= StatDeclarative SubClause* ";"
-data AST = NoDefDecl(AST, AST);                                         // Decl ::= ExprDeclarative SubClause* ";"
-data AST = NoDefDecl(AST, AST);                                         // Decl ::= TypeDeclarative SubClause* ";"
-data AST = FunClause(AST, AST);                                         // FunClause ::= "define" FunName ":" Type
-data AST = DataInvariant(AST);                                          // FunClause ::= "dataInvariant" FunctionParamList
-data AST = DataInvariant(AST);                                          // ProcClause ::= "dataInvariant" ProcedureParamList
-data AST = Congruence(AST);                                             // FunClause ::= "congruence" FunctionParamList
-data AST = Congruence(AST);                                             // ProcClause ::= "congruence" ProcedureParamList
-data AST = AnonParam(AST);                                              // FunctionParam ::= Type
-data AST = ObsParam(AST, AST);                                          // ProcedureParam ::= Identifier ":" Type
-data AST = AnonParam(AST, AST);                                         // ProcedureParam ::= ParamMode ":" Type
-data AST = Attr(AST);                                                   // Attribute ::= Identifier
-data AST = Opens(AST);                                                  // SubClause ::= "opens" "(" {Identifier ","}* ")"
-data AST = Default(AST);                                                // SubClause ::= "default" "(" {Identifier ","}* ")"
+data AST = VarClause();                                                 // VarClause ::= "var"  ":" 
+data AST = TypeClause();                                                // TypeClause ::= "type" 
+data AST = ConceptClause();                                             // Decl ::=  "concept"   "=" 
+data AST = ImplClause();                                                // Decl ::=  "implementation"   "=" 
+data AST = Library();                                                   // Decl ::=  "library"   "=" 
+data AST = ConceptClause();                                             // Decl ::=  "concept"   
+data AST = ImplClause();                                                // Decl ::=  "implementation"   
+data AST = Attrs();                                                     // AttrClause ::= "["  "]"
+data AST = Attr();                                                      // Attribute ::=  "("  ")"
+data AST = Guard();                                                     // GuardClause ::= "guard" 
+data AST = Requires();                                                  // Decl ::= "requires"  ";"
+data AST = Partition();                                                 // Decl ::= "partition"  "by"  ";"
+data AST = Generate();                                                  // Decl ::= "generate"  "by"  ";"
+data AST = Generate();                                                  // Decl ::= "generate"  "by"  ";"
+data AST = Free();                                                      // Decl ::= "free"  "by"  ";"
+data AST = ModelsImpl();                                                // Decl ::= "satisfaction"   "="   "models" 
+data AST = ModelsImpl();                                                // Decl ::= "satisfaction"   "=" "on"   "models" 
+data AST = WithClause();                                                // WithClause ::= "with" 
+data AST = Concept();                                                   // ConceptExpr ::= 
+data AST = ConceptBody();                                               // ConceptExpr ::= 
+data AST = SignatureOf();                                               // ConceptExpr ::= "signature" 
+data AST = MorphedConcept();                                            // ConceptExpr ::=  
+data AST = Impl();                                                      // ImplExpr ::= 
+data AST = ImplMorph();                                                 // ImplExpr ::=  
+data AST = ImplBody();                                                  // ImplExpr ::= 
+data AST = ExternalLib();                                               // ImplExpr ::= "external"   "defines" 
+data AST = ExternalLib();                                               // ImplExpr ::= "external"   "on"  "defines" 
+data AST = OnDefines();                                                 // ImplExpr ::= "on"  "defines" 
+data AST = Morphism();                                                  // Morphism ::= "morphism" 
+data AST = Morphism();                                                  // SubClause ::= "morphism" 
+data AST = ImplMorphism();                                              // MorphClause ::= "{"  "}"
+data AST = ImplMorphism();                                              // MorphClause ::= "{"  "}"
+data AST = Morphisms();                                                 // Morphism ::= "["  "]"
+data AST = Rename();                                                    // MorphClause ::=  "=>" 
+data AST = Morphism();                                                  // MorphClause ::= 
+data AST = ImplMorph();                                                 // MorphClause ::= 
+data AST = Protect();                                                   // Morphism ::= "protect"  "guard" 
+data AST = Protect();                                                   // MorphClause ::= "protect"  "guard" 
+data AST = Protect();                                                   // SubClause ::= "protect"  "guard" 
+data AST = Protect();                                                   // Morphism ::= "protect"  "by" 
+data AST = Protect();                                                   // MorphClause ::= "protect"  "by" 
+data AST = Protect();                                                   // SubClause ::= "protect"  "by" 
+data AST = At();                                                        // ImplExpr ::=  "@" 
+data AST = AtAt();                                                      // ImplExpr ::=  "@@" 
+data AST = Star();                                                      // ImplExpr ::=  "*" 
+data AST = StarStar();                                                  // ImplExpr ::=  "**" 
+data AST = Plus();                                                      // ImplExpr ::=  "+" 
+data AST = PlusPlus();                                                  // ImplExpr ::=  "++" 
+data AST = Times();                                                     // ImplExpr ::=  "times" 
+data AST = AtAt();                                                      // ConceptExpr ::=  "@@" 
+data AST = Star();                                                      // ConceptExpr ::=  "*" 
+data AST = StarStar();                                                  // ConceptExpr ::=  "**" 
+data AST = Plus();                                                      // ConceptExpr ::=  "+" 
+data AST = PlusPlus();                                                  // ConceptExpr ::=  "++" 
+data AST = Times();                                                     // ConceptExpr ::=  "times" 
+data AST = Hex();                                                       // Literal ::= 
+data AST = Bin();                                                       // Literal ::= 
+data AST = Oct();                                                       // Literal ::= 
+data AST = BaseFor();                                                   // Stat ::= "for"  "in"  
+data AST = BasePrintLn();                                               // Stat ::= "print"  ";"
+data AST = BasePrint();                                                 // Stat ::= "print"  "," ";"
+data AST = BaseVarDefTI();                                              // Stat ::= "var"  ":"  "="  ";"
+data AST = BaseVarDefI();                                               // Stat ::= "var"  "="  ";"
+data AST = BaseVarDefI();                                               // Stat ::= "var"  ";"
+data AST = BaseVarDefT();                                               // Stat ::= "var"  ":"  ";"
+data AST = DotOp();                                                     // Expr ::=  "." 
+data AST = DotOp();                                                     // Expr ::=  "." 
+data AST = BinOp();                                                     // Expr ::=   
+data AST = BinOp();                                                     // Expr ::=   
+data AST = BinOp();                                                     // Expr ::=   
+data AST = BinOp();                                                     // Expr ::=   
+data AST = BinOp();                                                     // Expr ::=   
+data AST = In();                                                        // Expr ::=  "in" 
+data AST = NotIn();                                                     // Expr ::=  "not" "in" 
+data AST = BinOp();                                                     // Expr ::=   
+data AST = BinOp();                                                     // Expr ::=   
+data AST = BinOp();                                                     // Expr ::=   
+data AST = BinOp();                                                     // Expr ::=   
+data AST = BinOp();                                                     // Expr ::=   
+data AST = BinOp();                                                     // Expr ::=   
+data AST = BinOp();                                                     // Expr ::=   
+data AST = BinOp();                                                     // Expr ::=   
+data AST = Index();                                                     // Expr ::=  "["  "]"
+data AST = PreOp();                                                     // Expr ::=  
+data AST = PreOp();                                                     // Expr ::=  
+data AST = PreOp();                                                     // Expr ::=  
+data AST = NoDefDecl();                                                 // Decl ::=   ";"
+data AST = NoDefDecl();                                                 // Decl ::=   ";"
+data AST = NoDefDecl();                                                 // Decl ::=   ";"
+data AST = FunClause();                                                 // FunClause ::= "define"  ":" 
+data AST = DataInvariant();                                             // FunClause ::= "dataInvariant" 
+data AST = DataInvariant();                                             // ProcClause ::= "dataInvariant" 
+data AST = Congruence();                                                // FunClause ::= "congruence" 
+data AST = Congruence();                                                // ProcClause ::= "congruence" 
+data AST = AnonParam();                                                 // FunctionParam ::= 
+data AST = ObsParam();                                                  // ProcedureParam ::=  ":" 
+data AST = AnonParam();                                                 // ProcedureParam ::=  ":" 
+data AST = Attr();                                                      // Attribute ::= 
+data AST = Opens();                                                     // SubClause ::= "opens" "("  ")"
+data AST = Default();                                                   // SubClause ::= "default" "("  ")"
 data AST = SimpleModule();                                              // ModuleHead ::= 
-data AST = Language(AST);                                               // ModuleClause ::= "language" {Name ","}*
-data AST = Imports(AST);                                                // ModuleClause ::= "imports" {ImportClause ","}*
-data AST = Requires(AST);                                               // ModuleClause ::= "requires" {RequiresClause ","}*
-data AST = CompilePragma(AST, AST);                                     // ModuleClause ::= "compile" """ String """ "{" CompileClause* "}"
-data AST = Pragma(AST, AST);                                            // CompileClause ::= ID "(" {QuotedString ","}* ")" ";"
-data AST = Dummy(AST);                                                  // QuotedString ::= """ String """
-data AST = ImportRequires(AST, AST);                                    // RequiresClause ::= Identifier "<" {ConceptClauseArgument ","}* ">"
-data AST = ImportAll(AST);                                              // ImportClause ::= Name
-data AST = Unresolved(AST);                                             // ConceptClauseArgument ::= Type
-data AST = ImportModule(AST);                                           // ImportClause ::= "module" Name
-data AST = ImportRename(AST, AST);                                      // ImportClause ::= "module" Name "=" Name
+data AST = Language();                                                  // ModuleClause ::= "language" 
+data AST = Imports();                                                   // ModuleClause ::= "imports" 
+data AST = Requires();                                                  // ModuleClause ::= "requires" 
+data AST = CompilePragma();                                             // ModuleClause ::= "compile" """  """ "{"  "}"
+data AST = Pragma();                                                    // CompileClause ::=  "("  ")" ";"
+data AST = Dummy();                                                     // QuotedString ::= """  """
+data AST = ImportRequires();                                            // RequiresClause ::=  "<"  ">"
+data AST = ImportAll();                                                 // ImportClause ::= 
+data AST = Unresolved();                                                // ConceptClauseArgument ::= 
+data AST = ImportModule();                                              // ImportClause ::= "module" 
+data AST = ImportRename();                                              // ImportClause ::= "module"  "=" 
 data AST = Nop();                                                       // Decl ::= ";"
-data AST = UserSyntax0(AST, AST, AST);                                  // Stat ::= Expr "." Identifier "=" Expr ";"
-data AST = UserSyntax1(AST, AST, AST);                                  // Stat ::= Identifier "[" {Expr ","}+ "]" "=" Expr ";"
-data AST = UserSyntax2(AST);                                            // Expr ::= Name
-data AST = UserSyntax3(AST, AST);                                       // Stat ::= "if" Expr "then" Stat* "end"
-data AST = UserSyntax4(AST, AST);                                       // Stat ::= "if" "(" Expr ")" "{" Stat* "}"
-data AST = UserSyntax5(AST, AST, AST);                                  // Stat ::= "if" "(" Expr ")" "{" Stat* "}" "else" "{" Stat* "}"
+data AST = UserSyntax0();                                               // Stat ::=  "."  "="  ";"
+data AST = UserSyntax1();                                               // Stat ::=  "["  "]" "="  ";"
+data AST = UserSyntax2();                                               // Expr ::= 
+data AST = UserSyntax3();                                               // Stat ::= "if"  "then"  "end"
+data AST = UserSyntax4();                                               // Stat ::= "if" "("  ")" "{"  "}"
+data AST = UserSyntax5();                                               // Stat ::= "if" "("  ")" "{"  "}" "else" "{"  "}"
 
