@@ -21,7 +21,8 @@ data XaToken =
 	  token(str chars)    // a literal
 	| space(str chars)   // whitespace
 	| comment(str chars)  // non-whitespace layout
-	| child(int index);   // reference to child node
+	| child(int index)   // reference to child node
+	| sep(XaToken tok, str chars);
 
 anno list[XaToken] XaTree@concrete;
 

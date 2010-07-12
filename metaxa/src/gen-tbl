@@ -16,6 +16,7 @@ fi
 export LD_LIBRARY_PATH=$FRAGMENT/installed/lib/
 
 $FRAGMENT/installed/bin/sdf2table -c -m Magnolia -o Magnolia.tbl
+$FRAGMENT/installed/bin/baffle -wt -i Magnolia.tbl -o Magnolia.trm
 $FRAGMENT/installed/bin/sdf2table -c -m Meta/MetaSyntax -o MetaXa.tbl -p .:$FRAGMENT/installed/share/sdf-library/library/
 
 [ "$1" = "-i" ] && cp *.tbl ../../magnolia-eclipse/lang/ && echo installed
