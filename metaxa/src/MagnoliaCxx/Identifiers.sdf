@@ -1,0 +1,22 @@
+module MagnoliaCxx/Identifiers
+
+exports
+  sorts
+    Identifier
+    ID
+
+  context-free syntax
+
+    ID -> Identifier {cons("Name")}
+
+	ID -> Name {cons("Name")}
+	
+	Name "::" ID -> Name {left,cons("QName")}
+	
+  lexical syntax
+
+    [A-Za-z][A-Za-z\_\$\#0-9]* -> ID
+
+  lexical restrictions
+
+    ID -/- [A-Za-z\_0-9]

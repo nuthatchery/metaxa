@@ -1,0 +1,50 @@
+
+module MagnoliaCxx/Expressions
+
+exports
+  sorts
+    Expr
+    InitSpec
+    Fun
+    Var
+    FunName
+  %% Externals
+    Type
+    Identifier
+    Literal
+    Stat
+
+  context-free syntax
+
+%%% Variables
+
+    "_" -> Expr {cons("Undefined")}
+
+%%% Variables
+
+    Name -> Var {cons("Var"), selectable}
+
+    Var -> Expr
+
+%%% Literals
+
+    Literal -> Expr {cons("Literal"), selectable}
+
+%%% Function Application
+
+    Fun "(" {Expr ","}* ")" -> Expr {cons("Apply"), selectable}
+
+    FunName -> Fun {cons("Fun")}
+
+    Name -> FunName
+
+%%% Control-flow expressions
+
+    Expr "?" Expr ":" Expr -> Expr {cons("IfThenElseExpr"), selectable}
+%%    "{" Stat* "}" -> Expr {cons("BlockExpr"), selectable}
+
+%%% List Expressions
+
+    "list" "(" {Expr ","}* ")" -> Expr {cons("ListCons")}
+
+    "list" "(" {Expr ","}* "," Expr ")" -> Expr {cons("ListCons")}

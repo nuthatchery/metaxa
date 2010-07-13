@@ -1,0 +1,63 @@
+module MagnoliaCxx/Statements
+  
+exports
+  sorts
+    BlockStat
+    Stat
+    LetClause
+    ProcName
+    Expr  %% External
+    Type  %% External
+    Identifier  %% External
+
+  context-free syntax
+
+    "{" Stat* "}" -> BlockStat {cons("Block")}
+
+    BlockStat -> Stat
+
+    ";" -> Stat {cons("Nop")}
+
+     
+    "if" "(" Expr ")" "{" Stat* "}" "else" "{" Stat* "}" -> Stat {prefer, cons("If")}
+
+    "while" "(" Expr ")" "{" Stat* "}" -> Stat {cons("While")}
+
+    "for" "(" Decl Expr ";" Expr ")" -> Stat {cons("CxxFor")}
+
+    Proc "(" {Expr ","}* ")" ";" -> Stat {cons("Call")}
+
+    ProcName -> Proc {cons("Proc")}
+
+    "return" Expr ";" -> Stat {cons("Yield")}
+
+    "break" ";" -> Stat {cons("Break")}
+
+    "return" ";" -> Stat {cons("Return")}
+
+    "return" Expr ";" -> Stat {cons("Return")}
+
+    Identifier "=" Expr ";" -> Stat {cons("Assign")}
+
+    "{" LetClause* Stat* "}" -> Stat {cons("Let")}
+
+    Type Identifier "=" Expr ";" -> LetClause {cons("VarDef")}
+
+    "assert" "(" Expr AssertClause* ")" ";" -> Stat {cons("Assert")}
+
+    "," Expr -> AssertClause {cons("By")}
+
+    "," "simplify" "(" Expr ")" -> AssertClause {cons("By")}
+
+    "qed" "(" ")" -> AssertClause {cons("QED")}
+
+lexical restrictions
+
+  "if"		-/- [A-Za-z\_\$0-9]
+  "else" 	-/- [A-Za-z\_\$0-9]
+  "while" 	-/- [A-Za-z\_\$0-9]
+  "do"		-/- [A-Za-z\_\$0-9]
+  "for" 	-/- [A-Za-z\_\$0-9]
+  "break" 	-/- [A-Za-z\_\$0-9]
+  "return" 	-/- [A-Za-z\_\$0-9]
+  "assert" 	-/- [A-Za-z\_\$0-9]

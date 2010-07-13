@@ -24,7 +24,7 @@ public node readParseTable(loc location) {
 public void generateFromSyntax(str language, loc location) {
 	tree = readParseTable(location);
 	list[value] prods = [];
-	map[str,str] ppTable = ();
+	map[str,tuple[str,str]] ppTable = ();
 	set[str] deprecated = {};
 	list[str] astDefs = [];
 	set[str] synMap = {};
@@ -62,14 +62,14 @@ public void generateFromSyntax(str language, loc location) {
 						
 					lhs = toNodeList(lhs0);
 					rhs = toNode(rhs0);
-					
+					syn = getSyn(lhs, rhs, attrs);
 					prods += p;
 					if(getCons(attrs) != "") {
 						<consname, concrete> = getPP(lhs, rhs, attrs);
-						if(consname in ppTable && ppTable[consname] != concrete) {
+						if(consname in ppTable && ppTable[consname][0] != concrete) {
 							if(consname in deprecated) {
 								if(!hasAttr("deprecated", attrs)) {
-									ppTable[consname] = concrete;
+									ppTable[consname] = <concrete, syn>;
 									deprecated -= consname;
 								}
 								else
@@ -79,7 +79,7 @@ public void generateFromSyntax(str language, loc location) {
 								println("Overlapping syntax for <consname>: <concrete>");
 						}
 						else {
-							ppTable[consname] = concrete;
+							ppTable[consname] = <concrete, syn>;
 							if(hasAttr("deprecated", attrs))
 								deprecated += consname;
 						}
@@ -100,7 +100,7 @@ public void generateFromSyntax(str language, loc location) {
 	writeFile(rascalFile, "module <language>AST\n\n<strJoin(astDefs,"\n")>\n\n");
 	javaPP = "";
 	for(consname <- ppTable)
-		javaPP += "\t\ttbl.put(\"<consname>\", <ppTable[consname]>);\n";
+		javaPP += "\t\t// <ppTable[consname][1]>\n\t\ttbl.put(\"<consname>\", <ppTable[consname][0]>);\n\n";
 	javaFile = location;
 	javaFile.path = replaceLast(location.path, "/[^/]*", "/<language>SkinTable.java");
 	writeFile(javaFile, "package org.magnolialang.xatree;\n\nimport java.util.HashMap;\nimport java.util.Map;\nimport org.eclipse.imp.pdb.facts.IList;\n"
@@ -150,11 +150,11 @@ public tuple[str,str] getPP(list[value] lhs, value rhs, list[value] attrs) {
 				pp += token("<lit>");
 			case "cf"("opt"("layout"())):
 				pp += space(" ");
-			case "cf"("iter-sep"(sort,"lit"(lit))): {
+			case "cf"("iter-sep"(s,"lit"(lit))): {
 				pp += sep(child(chld), "<lit>");
 				chld = chld + 1;
 			}
-			case "cf"("iter-star-sep"(sort,"lit"(lit))): {
+			case "cf"("iter-star-sep"(s,"lit"(lit))): {
 				pp += sep(child(chld), "<lit>");
 				chld = chld + 1;
 			}
@@ -178,7 +178,7 @@ public str getADT(list[value] lhs, value rhs, list[value] attrs) {
 				;
 			case "cf"("opt"("layout"())):
 				;
-			case sort: {
+			case s: {
 				defs += "AST"; //rascalSortName(sort);
 				chld = chld + 1;
 			}
@@ -203,8 +203,8 @@ public str getSyn(list[value] lhs, value rhs, list[value] attrs) {
 				syn += "\"<lit>\"";
 			case "cf"("opt"("layout"())):
 				syn += " ";
-			case sort: {
-				syn += pTblSortName(sort);
+			case s: {
+				syn += pTblSortName(s);
 			}
 		}
 	}
@@ -265,8 +265,10 @@ public str pTblSortName(value sym) {
 				return "\"<s>\"";
 			case "seq"([ss*]):
 				return "(<strJoin([pTblSortName(s) | s <- ss], " ")>)";
-			default:
-				println("Whoops!");
+			default: {
+				println("Whoops: ", sym);
+				return "<sym>";
+			}
 		}
 	}
 	rawPrintln(sym);

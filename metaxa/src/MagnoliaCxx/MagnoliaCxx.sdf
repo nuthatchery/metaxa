@@ -1,0 +1,25 @@
+module MagnoliaCxx/MagnoliaCxx
+
+imports 
+  Magnolia/Root/Layout
+  MagnoliaCxx/Identifiers
+  MagnoliaCxx/Types
+  MagnoliaCxx/Literals
+  MagnoliaCxx/Statements
+  MagnoliaCxx/Expressions
+  MagnoliaCxx/Declarations
+  MagnoliaCxx/Operators
+  
+exports
+  sorts
+    Program
+    Decl
+
+  context-free syntax
+
+   Decl* -> Program {cons("CxxTree")}
+
+  context-free start-symbols
+  
+	Program
+	
