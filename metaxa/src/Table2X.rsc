@@ -26,7 +26,8 @@ public void generateFromSyntax(str language, loc location) {
 	list[value] prods = [];
 	map[str,tuple[str,str]] ppTable = ();
 	set[str] deprecated = {};
-	list[str] astDefs = [];
+	astDefs = "";
+	mkAstDefs = "";
 	set[str] synMap = {};
 	if(list[value] labels := tree[2]) {
 		for("label"(p, _) <- labels) {
@@ -85,7 +86,9 @@ public void generateFromSyntax(str language, loc location) {
 						}
 							
 								
-						astDefs += getADT(lhs, rhs, attrs);
+						<t0,t1> = getADT(lhs, rhs, attrs);
+						astDefs += t0;
+						mkAstDefs += t1;
 						synMap += getSyntaxMapping(lhs, rhs, attrs);
 					}
 					//else
@@ -97,7 +100,8 @@ public void generateFromSyntax(str language, loc location) {
 	
 	rascalFile = location;
 	rascalFile.path = replaceLast(location.path, "/[^/]*", "/<language>AST.rsc");
-	writeFile(rascalFile, "module <language>AST\n\n<strJoin(astDefs,"\n")>\n\n");
+	writeFile(rascalFile, "module <language>AST\n\n<astDefs>\n\n" +
+			"AST makeAST(str name, list[AST] args) {\nswitch(name) {\n<mkAstDefs>\n}\n}\n");
 	javaPP = "";
 	for(consname <- ppTable)
 		javaPP += "\t\t// <ppTable[consname][1]>\n\t\ttbl.put(\"<consname>\", <ppTable[consname][0]>);\n\n";
@@ -168,8 +172,9 @@ public tuple[str,str] getPP(list[value] lhs, value rhs, list[value] attrs) {
 	return <"<getCons(attrs)>/<chld>:<pTblSortName(rhs)>", "vf.list(<strJoin(["<p>" | p <- pp], ", ")>)">;
 }
 
-public str getADT(list[value] lhs, value rhs, list[value] attrs) {
+public tuple[str,str] getADT(list[value] lhs, value rhs, list[value] attrs) {
 	list[str] defs = [];
+	list[str] args = [];
 	int chld = 0;
 	
 	for(sym <- lhs) {
@@ -180,12 +185,14 @@ public str getADT(list[value] lhs, value rhs, list[value] attrs) {
 				;
 			case s: {
 				defs += "AST"; //rascalSortName(sort);
+				args += "arg<chld>";
 				chld = chld + 1;
 			}
 		}
 	}
-	
-	return left("data AST = <getCons(attrs)>(<strJoin(defs, ", ")>);", 70) + "  // <getSyn(lhs, rhs, attrs)>";
+	consname = getCons(attrs);
+	return <left("data AST = <consname>(<strJoin(defs, ", ")>);", 70) + "  // <getSyn(lhs, rhs, attrs)>\n",
+			"\t\tcase \<\"<consname>\", [<strJoin(args, ", ")>]\>: return <consname>(<strJoin(args, ", ")>);\n">;			
 }
 
 public str getInj(list[node] lhs, node rhs, list[node] attrs) {
@@ -239,6 +246,7 @@ public str getSyntaxMapping(list[value] lhs, value rhs, list[value] attrs) {
 	
 	return left("\t<pTblSortName(rhs)>(: <strJoin(lhsPP, "")> :)", 50) + " -\> (+ <strJoin(rhsPP, "")> +)\n\n";
 }
+
 
 public str pTblSortName(value sym) {
 	if(node n := sym) {

@@ -58,7 +58,7 @@ exports
 
     "return" Expr ";" -> Stat {cons("Return")}
 
-    Identifier "=" Expr ";" -> Stat {cons("Assign")}
+    Expr "=" Expr ";" -> Stat {cons("Assign")}
 
     "let" LetClause* "in" Stat* "end" -> Stat {cons("Let")}
 

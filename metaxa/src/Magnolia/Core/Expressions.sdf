@@ -87,15 +87,6 @@ exports
     "if" Expr "then" Expr "else" Expr "end" -> Expr {cons("IfThenElseExpr"), selectable}
     "{" Stat* "}" -> Expr {cons("BlockExpr"), selectable}
 
-%%% List Expressions
-
-    "[" {Expr ","}* "]" -> Expr {cons("ListCons")}
-
-    "[" {Expr ","}* "|" Expr "]" -> Expr {cons("ListCons")}
-
-
-
-
 
 lexical restrictions
 

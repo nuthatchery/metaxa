@@ -2,6 +2,8 @@ language module Magnolia
 
 syntax skin
 
+	AlgDecl(: DeclBody :)                             -> (+ DeclBody +)
+
 	AssertClause(: by Expr :)                         -> (+ by Expr +)
 
 	AssertClause(: by simplify Expr :)                -> (+ by simplify Expr +)
@@ -30,26 +32,6 @@ syntax skin
 
 	ConceptClauseArgument(: Type :)                   -> (+ Type +)
 
-	ConceptExpr(: ConceptExpr * ConceptExpr :)        -> (+ ConceptExpr "*" ConceptExpr +)
-
-	ConceptExpr(: ConceptExpr ** ConceptExpr :)       -> (+ ConceptExpr "**" ConceptExpr +)
-
-	ConceptExpr(: ConceptExpr + ConceptExpr :)        -> (+ ConceptExpr "+" ConceptExpr +)
-
-	ConceptExpr(: ConceptExpr ++ ConceptExpr :)       -> (+ ConceptExpr "++" ConceptExpr +)
-
-	ConceptExpr(: ConceptExpr @@ ConceptExpr :)       -> (+ ConceptExpr "@@" ConceptExpr +)
-
-	ConceptExpr(: ConceptExpr Morphism :)             -> (+ ConceptExpr Morphism +)
-
-	ConceptExpr(: ConceptExpr times ConceptExpr :)    -> (+ ConceptExpr times ConceptExpr +)
-
-	ConceptExpr(: DeclBody :)                         -> (+ DeclBody +)
-
-	ConceptExpr(: Name :)                             -> (+ Name +)
-
-	ConceptExpr(: signature ConceptExpr :)            -> (+ signature ConceptExpr +)
-
 	ConsSpec(: Identifier ( {DataRep ","}* ) :)       -> (+ Identifier "(" {DataRep ","}* ")" +)
 
 	ConsSpec(: Identifier :)                          -> (+ Identifier +)
@@ -66,37 +48,39 @@ syntax skin
 
 	Decl(: ; :)                                       -> (+ ";" +)
 
-	Decl(: ExprDeclarative SubClause* ; :)            -> (+ ExprDeclarative SubClause* ";" +)
+	Decl(: Modifier* ExprDeclarative SubClause* ; :)  -> (+ Modifier* ExprDeclarative SubClause* ";" +)
+
+	Decl(: Modifier* StatDeclarative SubClause* ; :)  -> (+ Modifier* StatDeclarative SubClause* ";" +)
+
+	Decl(: Modifier* TypeDeclarative SubClause* ; :)  -> (+ Modifier* TypeDeclarative SubClause* ";" +)
 
 	Decl(: Modifier* TypeDeclarative SubClause* = Type ; :) -> (+ Modifier* TypeDeclarative SubClause* "=" Type ";" +)
 
-	Decl(: Modifier* concept Identifier SubClause* = ConceptExpr :) -> (+ Modifier* concept Identifier SubClause* "=" ConceptExpr +)
-
-	Decl(: Modifier* concept Identifier SubClause* DeclBody :) -> (+ Modifier* concept Identifier SubClause* DeclBody +)
-
-	Decl(: Modifier* implementation Identifier SubClause* = ImplExpr :) -> (+ Modifier* implementation Identifier SubClause* "=" ImplExpr +)
-
 	Decl(: Modifier* implementation Identifier SubClause* ImplExpr :) -> (+ Modifier* implementation Identifier SubClause* ImplExpr +)
 
-	Decl(: Modifier* library Identifier SubClause* = ImplExpr :) -> (+ Modifier* library Identifier SubClause* "=" ImplExpr +)
+	Decl(: congruence InstExpr ; :)                   -> (+ congruence InstExpr ";" +)
 
-	Decl(: StatDeclarative SubClause* ; :)            -> (+ StatDeclarative SubClause* ";" +)
+	Decl(: congruence InstExpr on InstExpr ; :)       -> (+ congruence InstExpr on InstExpr ";" +)
 
-	Decl(: TypeDeclarative SubClause* ; :)            -> (+ TypeDeclarative SubClause* ";" +)
+	Decl(: free {Type ","}+ by InstExpr ; :)          -> (+ free {Type ","}+ by InstExpr ";" +)
 
-	Decl(: free TypeName by {FunClause ","}* ; :)     -> (+ free TypeName by {FunClause ","}* ";" +)
+	Decl(: free {Type ","}+ by {SingleAlgDecl ","}+ ; :) -> (+ free {Type ","}+ by {SingleAlgDecl ","}+ ";" +)
 
-	Decl(: generate TypeName by {Expr ","}* ; :)      -> (+ generate TypeName by {Expr ","}* ";" +)
+	Decl(: generate {Type ","}+ by InstExpr ; :)      -> (+ generate {Type ","}+ by InstExpr ";" +)
 
-	Decl(: generate TypeName by {FunClause ","}* ; :) -> (+ generate TypeName by {FunClause ","}* ";" +)
+	Decl(: generate {Type ","}+ by {SingleAlgDecl ","}+ ; :) -> (+ generate {Type ","}+ by {SingleAlgDecl ","}+ ";" +)
 
-	Decl(: partition TypeName by {FunClause ","}* ; :) -> (+ partition TypeName by {FunClause ","}* ";" +)
+	Decl(: homomorphism InstExpr on InstExpr with InstExpr ; :) -> (+ homomorphism InstExpr on InstExpr with InstExpr ";" +)
 
-	Decl(: requires {ConceptExpr ","}+ ; :)           -> (+ requires {ConceptExpr ","}+ ";" +)
+	Decl(: partition {Type ","}+ by InstExpr ; :)     -> (+ partition {Type ","}+ by InstExpr ";" +)
 
-	Decl(: satisfaction Identifier SubClause* = ConceptExpr WithClause? models ConceptExpr :) -> (+ satisfaction Identifier SubClause* "=" ConceptExpr WithClause? models ConceptExpr +)
+	Decl(: partition {Type ","}+ by {SingleAlgDecl ","}+ ; :) -> (+ partition {Type ","}+ by {SingleAlgDecl ","}+ ";" +)
 
-	Decl(: satisfaction Identifier SubClause* = on ConceptExpr WithClause? models ConceptExpr :) -> (+ satisfaction Identifier SubClause* "=" on ConceptExpr WithClause? models ConceptExpr +)
+	Decl(: preserve InstExpr ; :)                     -> (+ preserve InstExpr ";" +)
+
+	Decl(: preserve InstExpr on InstExpr ; :)         -> (+ preserve InstExpr on InstExpr ";" +)
+
+	Decl(: requires {InstExpr ","}+ ; :)              -> (+ requires {InstExpr ","}+ ";" +)
 
 	DeclBody(: { Decl* } :)                           -> (+ "{" Decl* "}" +)
 
@@ -166,6 +150,16 @@ syntax skin
 
 	Expr(: { Stat* } :)                               -> (+ "{" Stat* "}" +)
 
+	ExternalExpr(: Identifier Name defines InstExpr :) -> (+ Identifier Name defines InstExpr +)
+
+	ExternalExpr(: Identifier Name extends InstExpr on InstExpr defines InstExpr :) -> (+ Identifier Name extends InstExpr on InstExpr defines InstExpr +)
+
+	ExternalExpr(: Identifier Name on InstExpr defines InstExpr :) -> (+ Identifier Name on InstExpr defines InstExpr +)
+
+	FilterExpr(: remove InstExpr :)                   -> (+ remove InstExpr +)
+
+	FilterExpr(: retain InstExpr :)                   -> (+ retain InstExpr +)
+
 	Fun(: FunName :)                                  -> (+ FunName +)
 
 	FunClause(: congruence FunctionParamList :)       -> (+ congruence FunctionParamList +)
@@ -186,32 +180,6 @@ syntax skin
 
 	Identifier(: ID :)                                -> (+ ID +)
 
-	ImplExpr(: DeclBody :)                            -> (+ DeclBody +)
-
-	ImplExpr(: ImplExpr * ImplExpr :)                 -> (+ ImplExpr "*" ImplExpr +)
-
-	ImplExpr(: ImplExpr ** ImplExpr :)                -> (+ ImplExpr "**" ImplExpr +)
-
-	ImplExpr(: ImplExpr + ImplExpr :)                 -> (+ ImplExpr "+" ImplExpr +)
-
-	ImplExpr(: ImplExpr ++ ImplExpr :)                -> (+ ImplExpr "++" ImplExpr +)
-
-	ImplExpr(: ImplExpr @ ImplExpr :)                 -> (+ ImplExpr "@" ImplExpr +)
-
-	ImplExpr(: ImplExpr @@ ImplExpr :)                -> (+ ImplExpr "@@" ImplExpr +)
-
-	ImplExpr(: ImplExpr Morphism :)                   -> (+ ImplExpr Morphism +)
-
-	ImplExpr(: ImplExpr times ImplExpr :)             -> (+ ImplExpr times ImplExpr +)
-
-	ImplExpr(: Name :)                                -> (+ Name +)
-
-	ImplExpr(: external Identifier Name defines ImplExpr :) -> (+ external Identifier Name defines ImplExpr +)
-
-	ImplExpr(: external Identifier Name on ConceptExpr defines ImplExpr :) -> (+ external Identifier Name on ConceptExpr defines ImplExpr +)
-
-	ImplExpr(: on ConceptExpr defines ImplExpr :)     -> (+ on ConceptExpr defines ImplExpr +)
-
 	ImportClause(: Name :)                            -> (+ Name +)
 
 	ImportClause(: module Name :)                     -> (+ module Name +)
@@ -219,6 +187,52 @@ syntax skin
 	ImportClause(: module Name = Name :)              -> (+ module Name "=" Name +)
 
 	InitSpec(: Identifier := Expr :)                  -> (+ Identifier ":=" Expr +)
+
+	InstExpr(: InstExpr ** InstExpr :)                -> (+ InstExpr "**" InstExpr +)
+
+	InstExpr(: InstExpr + InstExpr :)                 -> (+ InstExpr "+" InstExpr +)
+
+	InstExpr(: InstExpr ++ InstExpr :)                -> (+ InstExpr "++" InstExpr +)
+
+	InstExpr(: InstExpr @ InstExpr :)                 -> (+ InstExpr "@" InstExpr +)
+
+	InstExpr(: InstExpr @@ InstExpr :)                -> (+ InstExpr "@@" InstExpr +)
+
+	InstExpr(: InstExpr FilterExpr :)                 -> (+ InstExpr FilterExpr +)
+
+	InstExpr(: InstExpr [ {Renaming ","}* ] :)        -> (+ InstExpr "[" {Renaming ","}* "]" +)
+
+	InstExpr(: InstExpr dataInvariant InstExpr :)     -> (+ InstExpr "dataInvariant" InstExpr +)
+
+	InstExpr(: InstExpr declared Filter :)            -> (+ InstExpr declared Filter +)
+
+	InstExpr(: InstExpr homomorphism InstExpr on InstExpr with InstExpr :) -> (+ InstExpr homomorphism InstExpr on InstExpr with InstExpr +)
+
+	InstExpr(: InstExpr morphism InstExpr :)          -> (+ InstExpr morphism InstExpr +)
+
+	InstExpr(: InstExpr on Filter :)                  -> (+ InstExpr on Filter +)
+
+	InstExpr(: InstExpr protect AlgDecl :)            -> (+ InstExpr protect AlgDecl +)
+
+	InstExpr(: InstExpr protect {SingleAlgDecl ","}+ :) -> (+ InstExpr protect {SingleAlgDecl ","}+ +)
+
+	InstExpr(: InstExpr quotient InstExpr :)          -> (+ InstExpr quotient InstExpr +)
+
+	InstExpr(: InstExpr times InstExpr :)             -> (+ InstExpr times InstExpr +)
+
+	InstExpr(: declared InstExpr :)                   -> (+ declared InstExpr +)
+
+	InstExpr(: defines AlgDecl :)                     -> (+ defines AlgDecl +)
+
+	InstExpr(: external ExternalExpr :)               -> (+ external ExternalExpr +)
+
+	InstExpr(: full InstExpr :)                       -> (+ full InstExpr +)
+
+	InstExpr(: on InstExpr :)                         -> (+ on InstExpr +)
+
+	InstExpr(: on InstExpr defines AlgDecl :)         -> (+ on InstExpr defines AlgDecl +)
+
+	InstExpr(: signature InstExpr :)                  -> (+ signature InstExpr +)
 
 	LetClause(: var Identifier : Type = Expr ; :)     -> (+ var Identifier ":" Type "=" Expr ";" +)
 
@@ -232,6 +246,12 @@ syntax skin
 
 	Literal(: OctNumeral :)                           -> (+ OctNumeral +)
 
+	Modifier(: abstract :)                            -> (+ abstract +)
+
+	Modifier(: default :)                             -> (+ default +)
+
+	Modifier(: protect :)                             -> (+ protect +)
+
 	ModuleClause(: compile " String " { CompileClause* } :) -> (+ compile """ String """ "{" CompileClause* "}" +)
 
 	ModuleClause(: imports {ImportClause ","}* :)     -> (+ imports {ImportClause ","}* +)
@@ -243,28 +263,6 @@ syntax skin
 	ModuleHead(:  :)                                  -> (+  +)
 
 	ModuleHead(: module Name ModuleClause* ; :)       -> (+ module Name ModuleClause* ";" +)
-
-	MorphClause(: Decl :)                             -> (+ Decl +)
-
-	MorphClause(: ImplExpr :)                         -> (+ ImplExpr +)
-
-	MorphClause(: Name => Name :)                     -> (+ Name "=>" Name +)
-
-	MorphClause(: protect FunClause by Expr :)        -> (+ protect FunClause by Expr +)
-
-	MorphClause(: protect FunClause guard Expr :)     -> (+ protect FunClause guard Expr +)
-
-	MorphClause(: { (MorphClause ";")* } :)           -> (+ "{" (MorphClause ";")* "}" +)
-
-	MorphClause(: { MorphClause* } :)                 -> (+ "{" MorphClause* "}" +)
-
-	Morphism(: [ {MorphClause ","}* ] :)              -> (+ "[" {MorphClause ","}* "]" +)
-
-	Morphism(: morphism MorphClause :)                -> (+ morphism MorphClause +)
-
-	Morphism(: protect FunClause by Expr :)           -> (+ protect FunClause by Expr +)
-
-	Morphism(: protect FunClause guard Expr :)        -> (+ protect FunClause guard Expr +)
 
 	Name(: ID :)                                      -> (+ ID +)
 
@@ -286,6 +284,8 @@ syntax skin
 
 	PredClause(: predicate FunIdentifier FunctionParamList :) -> (+ predicate FunIdentifier FunctionParamList +)
 
+	Proc(: ProcName :)                                -> (+ ProcName +)
+
 	ProcClause(: congruence ProcedureParamList :)     -> (+ congruence ProcedureParamList +)
 
 	ProcClause(: dataInvariant ProcedureParamList :)  -> (+ "dataInvariant" ProcedureParamList +)
@@ -293,8 +293,6 @@ syntax skin
 	ProcClause(: procedure ProcIdentifier ProcedureParamList :) -> (+ procedure ProcIdentifier ProcedureParamList +)
 
 	ProcIdentifier(: _=_ :)                           -> (+ "_=_" +)
-
-	ProcName(: Identifier :)                          -> (+ Identifier +)
 
 	ProcedureParam(: Identifier : Type :)             -> (+ Identifier ":" Type +)
 
@@ -310,9 +308,31 @@ syntax skin
 
 	QuotedString(: " String " :)                      -> (+ """ String """ +)
 
+	Renaming(: Name => Name :)                        -> (+ Name "=>" Name +)
+
 	RequiresClause(: Identifier < {ConceptClauseArgument ","}* > :) -> (+ Identifier "<" {ConceptClauseArgument ","}* ">" +)
 
+	SatisfactionExpr(: InstExpr models InstExpr :)    -> (+ InstExpr models InstExpr +)
+
+	SatisfactionExpr(: InstExpr with InstExpr models InstExpr :) -> (+ InstExpr with InstExpr models InstExpr +)
+
 	SemiDecl(: Modifier* ExprDeclarative SubClause* = Expr ; :) -> (+ Modifier* ExprDeclarative SubClause* "=" Expr ";" +)
+
+	SingleAlgDecl(: Modifier* DeclDeclarative SubClause* :) -> (+ Modifier* DeclDeclarative SubClause* +)
+
+	SingleAlgDecl(: Modifier* DeclDeclarative SubClause* = DeclBody :) -> (+ Modifier* DeclDeclarative SubClause* "=" DeclBody +)
+
+	SingleAlgDecl(: Modifier* ExprDeclarative SubClause* :) -> (+ Modifier* ExprDeclarative SubClause* +)
+
+	SingleAlgDecl(: Modifier* ExprDeclarative SubClause* = Expr :) -> (+ Modifier* ExprDeclarative SubClause* "=" Expr +)
+
+	SingleAlgDecl(: Modifier* StatDeclarative SubClause* :) -> (+ Modifier* StatDeclarative SubClause* +)
+
+	SingleAlgDecl(: Modifier* StatDeclarative SubClause* = BlockStat :) -> (+ Modifier* StatDeclarative SubClause* "=" BlockStat +)
+
+	SingleAlgDecl(: Modifier* TypeDeclarative SubClause* :) -> (+ Modifier* TypeDeclarative SubClause* +)
+
+	SingleAlgDecl(: Modifier* TypeDeclarative SubClause* = Type :) -> (+ Modifier* TypeDeclarative SubClause* "=" Type +)
 
 	Stat(: ; :)                                       -> (+ ";" +)
 
@@ -326,7 +346,7 @@ syntax skin
 
 	Stat(: break ; :)                                 -> (+ break ";" +)
 
-	Stat(: call ProcName ( {Expr ","}* ) ; :)         -> (+ call ProcName "(" {Expr ","}* ")" ";" +)
+	Stat(: call Proc ( {Expr ","}* ) ; :)             -> (+ call Proc "(" {Expr ","}* ")" ";" +)
 
 	Stat(: for Identifier in Expr Stat :)             -> (+ for Identifier in Expr Stat +)
 
@@ -368,13 +388,19 @@ syntax skin
 
 	SubClause(: default ( {Identifier ","}* ) :)      -> (+ default "(" {Identifier ","}* ")" +)
 
-	SubClause(: morphism MorphClause :)               -> (+ morphism MorphClause +)
-
 	SubClause(: opens ( {Identifier ","}* ) :)        -> (+ opens "(" {Identifier ","}* ")" +)
 
-	SubClause(: protect FunClause by Expr :)          -> (+ protect FunClause by Expr +)
+	TopDecl(: ; :)                                    -> (+ ";" +)
 
-	SubClause(: protect FunClause guard Expr :)       -> (+ protect FunClause guard Expr +)
+	TopDecl(: Modifier* concept Identifier SubClause* = InstExpr :) -> (+ Modifier* concept Identifier SubClause* "=" InstExpr +)
+
+	TopDecl(: Modifier* concept Identifier SubClause* DeclBody :) -> (+ Modifier* concept Identifier SubClause* DeclBody +)
+
+	TopDecl(: Modifier* implementation Identifier SubClause* = InstExpr :) -> (+ Modifier* implementation Identifier SubClause* "=" InstExpr +)
+
+	TopDecl(: Modifier* library Identifier SubClause* = InstExpr :) -> (+ Modifier* library Identifier SubClause* "=" InstExpr +)
+
+	TopDecl(: Modifier* satisfaction Identifier SubClause* = SatisfactionExpr :) -> (+ Modifier* satisfaction Identifier SubClause* "=" SatisfactionExpr +)
 
 	Type(: ( ) :)                                     -> (+ "(" ")" +)
 
@@ -391,8 +417,6 @@ syntax skin
 	Var(: Name : Type :)                              -> (+ Name ":" Type +)
 
 	VarClause(: var VarIdentifier : Type :)           -> (+ var VarIdentifier ":" Type +)
-
-	WithClause(: with ImplExpr :)                     -> (+ with ImplExpr +)
 
 
 

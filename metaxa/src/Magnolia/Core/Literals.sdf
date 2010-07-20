@@ -30,20 +30,19 @@ exports
     U32Char
     String
 
-  context-free syntax
+  lexical syntax
     DecNumeral -> Literal {cons("Int")}
     FloatNumeral -> Literal {cons("Real")}
     "\"" String "\"" -> StringLiteral {cons("String")}
     StringLiteral -> Literal
 
-  lexical syntax
     [\+\-]? [0-9]+ -> DecNumeral
     [\+\-]? "." [0-9]+ Exponent? -> FloatNumeral
     [\+\-]? [0-9]+ "." [0-9]* Exponent? -> FloatNumeral
     [\+\-]? [0-9]+ Exponent -> FloatNumeral
-    [eE] [\+\-]? DecNumeral -> Exponent
+    [eE] DecNumeral -> Exponent
 
-    ~[\"]				-> StringPart
+    ~[\"\\]				-> StringPart
     "\\" [\\\"nrbfe]			-> StringPart
     "\\x" [0-9a-fA-F] [0-9a-fA-F]	-> StringPart
     "\\#" [0-9]+ ";"			-> StringPart
@@ -52,7 +51,7 @@ exports
     U16Char -> StringPart
     U32Char -> StringPart
     "\\u" [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F] -> U16Char
-    "\\u" [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F] -> U32Char
+    "\\U" [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F] -> U32Char
     StringPart*	-> String
 
   lexical restrictions
@@ -61,5 +60,4 @@ exports
     DecNumeral -/- [\.].[0-9]
     FloatNumeral -/- [0-9\.eE]
     Exponent -/- [0-9]
-    U16Char -/- [0-9a-fA-F]
     String -/- ~[\"]

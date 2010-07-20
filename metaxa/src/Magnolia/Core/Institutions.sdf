@@ -74,6 +74,8 @@ exports
 
   	InstExpr "[" {Renaming ","}* "]" -> InstExpr	{left, cons("Renamed")}
  
+ 	"[" {Renaming ","}* "]" -> InstExpr		{cons("RenameImpl")}
+ 	
  	"(" InstExpr ")" -> InstExpr	{bracket}
  	 	
  	%% Concepts
