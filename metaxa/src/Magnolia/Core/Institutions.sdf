@@ -84,7 +84,7 @@ exports
  	
 	InstExpr "protect" AlgDecl		-> InstExpr {left,cons("Protected")}
  	
-	InstExpr "protect" {SingleAlgDecl ","}+		-> InstExpr {left,avoid,deprecated("Wrap protect body in {}"),cons("Protected")}
+%%	InstExpr "protect" {SingleAlgDecl ","}+		-> InstExpr {left,avoid,deprecated("Wrap protect body in {}"),cons("Protected")}
 
  	%% Libraries and Implementations
  	
@@ -307,7 +307,7 @@ context-free priorities
 		 								-> InstExpr
 	InstExpr "morphism" InstExpr	-> InstExpr
  	
-	InstExpr "protect" InstExpr		-> InstExpr
+	InstExpr "protect" AlgDecl		-> InstExpr
 }
 >
 	"external" ExternalExpr				-> InstExpr
