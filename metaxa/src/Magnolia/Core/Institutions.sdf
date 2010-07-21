@@ -68,9 +68,9 @@ exports
 
   	InstExpr FilterExpr		-> InstExpr		{left, cons("Filtered")}
   	
-  	"retain" InstExpr		-> FilterExpr	{cons("RetainFilter")}
+  	"retain" AlgDeclOrName	-> FilterExpr	{left, cons("RetainFilter")}
   	
-  	"remove" InstExpr		-> FilterExpr	{cons("RemoveFilter")}
+  	"remove" AlgDeclOrName	-> FilterExpr	{left, cons("RemoveFilter")}
 
   	InstExpr "[" {Renaming ","}* "]" -> InstExpr	{left, cons("Renamed")}
  
@@ -82,7 +82,7 @@ exports
  	
 	InstExpr "morphism" InstExpr	-> InstExpr	{left,cons("Morphed")}
  	
-	InstExpr "protect" AlgDecl		-> InstExpr {left,cons("Protected")}
+	InstExpr "protect" AlgDeclOrName	-> InstExpr {left,cons("Protected")}
  	
 %%	InstExpr "protect" {SingleAlgDecl ","}+		-> InstExpr {left,avoid,deprecated("Wrap protect body in {}"),cons("Protected")}
 
@@ -196,6 +196,10 @@ exports
 
     Modifier* DeclDeclarative SubClause*
 	-> SingleAlgDecl	{cons("DeclDecl")}
+	
+	Name -> AlgDeclOrName
+
+    AlgDecl -> AlgDeclOrName
  
 %% Extension of Declaration Syntax
   	
@@ -266,8 +270,6 @@ context-free priorities
 
   	InstExpr "[" {Renaming ","}* "]"	-> InstExpr
 >  	
- 	InstExpr FilterExpr					-> InstExpr
->
 {left:
   	"signature" InstExpr	-> InstExpr
   	
@@ -276,6 +278,10 @@ context-free priorities
   	"on" InstExpr			-> InstExpr
   	
   	"declared" InstExpr		-> InstExpr	
+
+	"on" InstExpr "defines" AlgDecl	-> InstExpr
+
+	"defines" AlgDecl	-> InstExpr
 }
 >
 {left: 		
@@ -308,6 +314,8 @@ context-free priorities
 	InstExpr "morphism" InstExpr	-> InstExpr
  	
 	InstExpr "protect" AlgDecl		-> InstExpr
+
+ 	InstExpr FilterExpr					-> InstExpr
 }
 >
 	"external" ExternalExpr				-> InstExpr
