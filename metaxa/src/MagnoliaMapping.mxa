@@ -140,10 +140,6 @@ syntax skin
 
 	Expr(: Type { {InitSpec ","}* } :)                -> (+ Type "{" {InitSpec ","}* "}" +)
 
-	Expr(: [ {Expr ","}* ] :)                         -> (+ "[" {Expr ","}* "]" +)
-
-	Expr(: [ {Expr ","}* | Expr ] :)                  -> (+ "[" {Expr ","}* "|" Expr "]" +)
-
 	Expr(: _ :)                                       -> (+ "_" +)
 
 	Expr(: if Expr then Expr else Expr end :)         -> (+ if Expr then Expr else Expr end +)
@@ -214,11 +210,11 @@ syntax skin
 
 	InstExpr(: InstExpr protect AlgDecl :)            -> (+ InstExpr protect AlgDecl +)
 
-	InstExpr(: InstExpr protect {SingleAlgDecl ","}+ :) -> (+ InstExpr protect {SingleAlgDecl ","}+ +)
-
 	InstExpr(: InstExpr quotient InstExpr :)          -> (+ InstExpr quotient InstExpr +)
 
 	InstExpr(: InstExpr times InstExpr :)             -> (+ InstExpr times InstExpr +)
+
+	InstExpr(: [ {Renaming ","}* ] :)                 -> (+ "[" {Renaming ","}* "]" +)
 
 	InstExpr(: declared InstExpr :)                   -> (+ declared InstExpr +)
 
@@ -237,10 +233,6 @@ syntax skin
 	LetClause(: var Identifier : Type = Expr ; :)     -> (+ var Identifier ":" Type "=" Expr ";" +)
 
 	Literal(: BinNumeral :)                           -> (+ BinNumeral +)
-
-	Literal(: DecNumeral :)                           -> (+ DecNumeral +)
-
-	Literal(: FloatNumeral :)                         -> (+ FloatNumeral +)
 
 	Literal(: HexNumeral :)                           -> (+ HexNumeral +)
 
@@ -338,7 +330,7 @@ syntax skin
 
 	Stat(: Expr . Identifier = Expr ; :)              -> (+ Expr "." Identifier "=" Expr ";" +)
 
-	Stat(: Identifier = Expr ; :)                     -> (+ Identifier "=" Expr ";" +)
+	Stat(: Expr = Expr ; :)                           -> (+ Expr "=" Expr ";" +)
 
 	Stat(: Identifier [ {Expr ","}+ ] = Expr ; :)     -> (+ Identifier "[" {Expr ","}+ "]" "=" Expr ";" +)
 
@@ -383,8 +375,6 @@ syntax skin
 	Stat(: while Expr do Stat* end :)                 -> (+ while Expr do Stat* end +)
 
 	Stat(: yield Expr ; :)                            -> (+ yield Expr ";" +)
-
-	StringLiteral(: " String " :)                     -> (+ """ String """ +)
 
 	SubClause(: default ( {Identifier ","}* ) :)      -> (+ default "(" {Identifier ","}* ")" +)
 

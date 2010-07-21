@@ -100,7 +100,8 @@ public void generateFromSyntax(str language, loc location) {
 	
 	rascalFile = location;
 	rascalFile.path = replaceLast(location.path, "/[^/]*", "/<language>AST.rsc");
-	writeFile(rascalFile, "module <language>AST\n\n<astDefs>\n\n" +
+	writeFile(rascalFile, "module <language>AST\n\n<astDefs>\n" +
+			"data AST = leaf(str strVal) | var(str name) | seq(list[AST] args);\n\n" +
 			"AST makeAST(str name, list[AST] args) {\nswitch(name) {\n<mkAstDefs>\n}\n}\n");
 	javaPP = "";
 	for(consname <- ppTable)
@@ -169,7 +170,7 @@ public tuple[str,str] getPP(list[value] lhs, value rhs, list[value] attrs) {
 		}
 	}
 	
-	return <"<getCons(attrs)>/<chld>:<pTblSortName(rhs)>", "vf.list(<strJoin(["<p>" | p <- pp], ", ")>)">;
+	return <"<getCons(attrs)>/<chld>", "vf.list(<strJoin(["<p>" | p <- pp], ", ")>)">;
 }
 
 public tuple[str,str] getADT(list[value] lhs, value rhs, list[value] attrs) {

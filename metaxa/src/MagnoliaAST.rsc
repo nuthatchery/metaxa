@@ -12,9 +12,6 @@ data AST = AltType(AST, AST);                                           // Type 
 data AST = ProdType(AST, AST);                                          // ProdType ::= Type "," ProdType
 data AST = Dummy(AST);                                                  // Type ::= "(" ProdType ")"
 data AST = Struct(AST);                                                 // Type ::= "struct" DeclBody
-data AST = Int(AST);                                                    // Literal ::= DecNumeral
-data AST = Real(AST);                                                   // Literal ::= FloatNumeral
-data AST = String(AST);                                                 // StringLiteral ::= """ String """
 data AST = Block(AST);                                                  // BlockStat ::= "{" Stat* "}"
 data AST = Nop();                                                       // Stat ::= ";"
 data AST = If(AST, AST, AST);                                           // Stat ::= "if" Expr "then" Stat* "else" Stat* "end"
@@ -27,7 +24,7 @@ data AST = Yield(AST);                                                  // Stat 
 data AST = Break();                                                     // Stat ::= "break" ";"
 data AST = Return();                                                    // Stat ::= "return" ";"
 data AST = Return(AST);                                                 // Stat ::= "return" Expr ";"
-data AST = Assign(AST, AST);                                            // Stat ::= Identifier "=" Expr ";"
+data AST = Assign(AST, AST);                                            // Stat ::= Expr "=" Expr ";"
 data AST = Let(AST, AST);                                               // Stat ::= "let" LetClause* "in" Stat* "end"
 data AST = VarDef(AST, AST, AST);                                       // LetClause ::= "var" Identifier ":" Type "=" Expr ";"
 data AST = Assert(AST, AST);                                            // Stat ::= "assert" Expr AssertClause* ";"
@@ -46,8 +43,6 @@ data AST = Apply(AST, AST);                                             // Expr 
 data AST = Fun(AST);                                                    // Fun ::= FunName
 data AST = IfThenElseExpr(AST, AST, AST);                               // Expr ::= "if" Expr "then" Expr "else" Expr "end"
 data AST = BlockExpr(AST);                                              // Expr ::= "{" Stat* "}"
-data AST = ListCons(AST);                                               // Expr ::= "[" {Expr ","}* "]"
-data AST = ListCons(AST, AST);                                          // Expr ::= "[" {Expr ","}* "|" Expr "]"
 data AST = NumRep(AST, AST);                                            // DataRep ::= DecNumeral ".." DecNumeral ";"
 data AST = AliasType(AST);                                              // DataRep ::= "type" Type ";"
 data AST = StructRep(AST);                                              // DataRep ::= "struct" "{" Decl* "}"
@@ -100,9 +95,9 @@ data AST = Filtered(AST, AST);                                          // InstE
 data AST = RetainFilter(AST);                                           // FilterExpr ::= "retain" InstExpr
 data AST = RemoveFilter(AST);                                           // FilterExpr ::= "remove" InstExpr
 data AST = Renamed(AST, AST);                                           // InstExpr ::= InstExpr "[" {Renaming ","}* "]"
+data AST = RenameImpl(AST);                                             // InstExpr ::= "[" {Renaming ","}* "]"
 data AST = Morphed(AST, AST);                                           // InstExpr ::= InstExpr "morphism" InstExpr
 data AST = Protected(AST, AST);                                         // InstExpr ::= InstExpr "protect" AlgDecl
-data AST = Protected(AST, AST);                                         // InstExpr ::= InstExpr "protect" {SingleAlgDecl ","}+
 data AST = OnDefines(AST, AST);                                         // InstExpr ::= "on" InstExpr "defines" AlgDecl
 data AST = Defines(AST);                                                // InstExpr ::= "defines" AlgDecl
 data AST = External(AST);                                               // InstExpr ::= "external" ExternalExpr
@@ -209,9 +204,10 @@ data AST = UserSyntax3(AST, AST);                                       // Stat 
 data AST = UserSyntax4(AST, AST);                                       // Stat ::= "if" "(" Expr ")" "{" Stat* "}"
 data AST = UserSyntax5(AST, AST, AST);                                  // Stat ::= "if" "(" Expr ")" "{" Stat* "}" "else" "{" Stat* "}"
 
+data AST = leaf(str strVal) | var(str name) | seq(list[AST] args);
 
-public AST makeAST(str name, list[AST] args) {
-switch(<name, args>) {
+AST makeAST(str name, list[AST] args) {
+switch(name) {
 		case <"MagnoliaTree", [arg0, arg1]>: return MagnoliaTree(arg0, arg1);
 		case <"ModuleHead", [arg0, arg1]>: return ModuleHead(arg0, arg1);
 		case <"Nop", []>: return Nop();
@@ -224,9 +220,6 @@ switch(<name, args>) {
 		case <"ProdType", [arg0, arg1]>: return ProdType(arg0, arg1);
 		case <"Dummy", [arg0]>: return Dummy(arg0);
 		case <"Struct", [arg0]>: return Struct(arg0);
-		case <"Int", [arg0]>: return Int(arg0);
-		case <"Real", [arg0]>: return Real(arg0);
-		case <"String", [arg0]>: return String(arg0);
 		case <"Block", [arg0]>: return Block(arg0);
 		case <"Nop", []>: return Nop();
 		case <"If", [arg0, arg1, arg2]>: return If(arg0, arg1, arg2);
@@ -258,8 +251,6 @@ switch(<name, args>) {
 		case <"Fun", [arg0]>: return Fun(arg0);
 		case <"IfThenElseExpr", [arg0, arg1, arg2]>: return IfThenElseExpr(arg0, arg1, arg2);
 		case <"BlockExpr", [arg0]>: return BlockExpr(arg0);
-		case <"ListCons", [arg0]>: return ListCons(arg0);
-		case <"ListCons", [arg0, arg1]>: return ListCons(arg0, arg1);
 		case <"NumRep", [arg0, arg1]>: return NumRep(arg0, arg1);
 		case <"AliasType", [arg0]>: return AliasType(arg0);
 		case <"StructRep", [arg0]>: return StructRep(arg0);
@@ -312,8 +303,8 @@ switch(<name, args>) {
 		case <"RetainFilter", [arg0]>: return RetainFilter(arg0);
 		case <"RemoveFilter", [arg0]>: return RemoveFilter(arg0);
 		case <"Renamed", [arg0, arg1]>: return Renamed(arg0, arg1);
+		case <"RenameImpl", [arg0]>: return RenameImpl(arg0);
 		case <"Morphed", [arg0, arg1]>: return Morphed(arg0, arg1);
-		case <"Protected", [arg0, arg1]>: return Protected(arg0, arg1);
 		case <"Protected", [arg0, arg1]>: return Protected(arg0, arg1);
 		case <"OnDefines", [arg0, arg1]>: return OnDefines(arg0, arg1);
 		case <"Defines", [arg0]>: return Defines(arg0);

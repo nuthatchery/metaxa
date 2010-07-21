@@ -4,10 +4,11 @@ import IO;
 import Set;
 import List;
 import XaLib;
-import XaTree;
+//import XaTree;
+import MagnoliaAST;
+import Node;
 
-data MagnoliaEnv = environ(rel[Name, XaTree] members);
-data Name = qual(str, Name) | name(str);
+data MagnoliaEnv = environ(rel[AST sort, AST qname, AST name, AST attrs, AST def] members);
 
 public MagnoliaEnv newEnv() {
 	return environ({});
@@ -27,7 +28,7 @@ public MagnoliaEnv joinEnv(list[MagnoliaEnv] envs) {
 	return env;
 }
 
-public set[XaTree] membersOf(Name n, MagnoliaEnv env) {
+public set[AST] membersOf(AST n, MagnoliaEnv env) {
 	return env.members[n];
 }
 
@@ -42,7 +43,7 @@ public set[XaTree] membersOf(Name n, MagnoliaEnv env) {
 //	<tree, ctx> = loadFile(path, project);
 //	return unparse(reindent(flattenConcepts(tree, ctx)));
 //}
-public str flattenModule(XaTree tree, MagnoliaEnv ctx) {
+public str flattenModule(AST tree, MagnoliaEnv ctx) {
 	return unparse(reindent(flattenConcepts(tree, ctx)));
 }
 //public void flattenModule(str moduleName, str project) {
@@ -61,15 +62,15 @@ public str flattenModule(XaTree tree, MagnoliaEnv ctx) {
 //	writeFile(path, unparse(reindent(cxxFormat(flattenConcepts(tree, ctx)))));
 //}
 
-//public tuple[XaTree, MagnoliaEnv] loadModule(str moduleName, str project) {
+//public tuple[AST, MagnoliaEnv] loadModule(str moduleName, str project) {
 //	path = findInPath("<moduleName>.mg", project);
 //	println("Loading module <moduleName> from <path>");
 //	return loadFile(path, project);
 //}
 
-//public tuple[XaTree, MagnoliaEnv] loadFile(loc moduleLoc, str project) {
+//public tuple[AST, MagnoliaEnv] loadFile(loc moduleLoc, str project) {
 //	result = newEnv();
-//	XaTree tree = parseMagnolia(moduleLoc);
+//	AST tree = parseMagnolia(moduleLoc);
 //	if(cons("MagnoliaTree", [cons("ModuleHead", [NAME, seq(CLAUSES,_)], _), seq(DECLS,_)], _) := tree) {
 //		for(clause <- CLAUSES) {
 //			switch(clause) {
@@ -91,33 +92,49 @@ public str flattenModule(XaTree tree, MagnoliaEnv ctx) {
 //	return <tree, result>;
 //}
 
-public MagnoliaEnv loadTrees(list[XaTree] trees) {
+public MagnoliaEnv loadTrees(list[AST] trees) {
 	result = newEnv();
 	for(tree <- trees)
 		result = loadTree(tree, result);
 	return result;
 }
 
-public MagnoliaEnv loadTree(XaTree tree, MagnoliaEnv result) {
-	if(cons("MagnoliaTree", [cons("ModuleHead", [NAME, seq(CLAUSES,_)], _), seq(DECLS,_)], _) := tree) {
+public MagnoliaEnv loadTree(AST tree, MagnoliaEnv result) {
+	if(MagnoliaTree(ModuleHead(moduleName, seq(CLAUSES)), seq(DECLS)) := tree) {
 		for(decl <- DECLS) {
 			// println(decl);
+			tuple[AST sort, AST qname, AST name, AST attrs, AST def] def;
+			found = true;
 			switch(decl) {
-				case cons("DefDecl", [cons("ConceptClause", [CONCEPT], _), _, cons(_, [seq(CONTENTS,_)], _)], _): {
-					println(name(unparse(CONCEPT)));
-					result.members += {name(unparse(CONCEPT))} * toSet(CONTENTS);
+				case ConceptDef(mods, name, subcls, body):
+					def = <leaf("concept"), qualify(moduleName, name), name, subcls, body>;
+				case SatisfactionDef(mods, name, subcls, body):
+					def = <leaf("satisfaction"), qualify(moduleName, name), name, subcls, body>;
+				case ImplDef(mods, name, subcls, body):
+					def = <leaf("implementation"), qualify(moduleName, name), name, subcls, body>;
+				case LibraryDef(mods, name, subcls, body):
+					def = <leaf("library"), qualify(moduleName, name), name, subcls, body>;
+				case Nop():
+					found = false;
+				default: {
+					println("Unknown top-level definition: <getName(decl)>");
+					found = false;
 				}
+			}
+			if(found) {
+				println("Defined <def[0]> <def[1]>");
+				result.members += {def};
 			}
 		}
 	}
 	return result;
 }
 
-public XaTree flattenConcepts(XaTree tree, MagnoliaEnv env) {
+public AST flattenConcepts(AST tree, MagnoliaEnv env) {
 	return top-down-break visit(tree) {
 		case cDecl : cons("DefDecl", [cons("ConceptClause", [CONCEPT], _), seq(SUBCLAUSES,_), cons("DeclBody", [seq(CONTENTS,_)], _)], _) : {
 			println("Looking at <unparse(CONCEPT)>: ");
-			set[XaTree] decls = {};
+			set[AST] decls = {};
 			for(decl <- CONTENTS) {
 				println("  Decl: ", decl);
 				switch(decl) {
@@ -131,7 +148,7 @@ public XaTree flattenConcepts(XaTree tree, MagnoliaEnv env) {
 						decls += decl;
 				}
 			}
-			list[XaTree] declList = sortList(toList(decls));
+			list[AST] declList = sortList(toList(decls));
 			cDecl.args[2].args[0].args = declList;
 			cDecl.args[2].args[0]@concrete = [];
 			insert cDecl;
@@ -163,8 +180,8 @@ public XaTree flattenConcepts(XaTree tree, MagnoliaEnv env) {
 	}
 }
 
-public tuple[set[XaTree], MagnoliaEnv] getConcept(XaTree cExpr, MagnoliaEnv ctx) {
-	set[XaTree] result = {};
+public tuple[set[AST], MagnoliaEnv] getConcept(AST cExpr, MagnoliaEnv ctx) {
+	set[AST] result = {};
 	switch(cExpr) {
 		case cons("Concept", [NAME], _): {
 			decls = membersOf(name(unparse(NAME)), ctx);
@@ -213,9 +230,9 @@ public tuple[set[XaTree], MagnoliaEnv] getConcept(XaTree cExpr, MagnoliaEnv ctx)
 	return <result, ctx>;
 }
 
-public &T morph(&T tree, XaTree M) {
-	map[XaTree,XaTree] renaming = ();
-	rel[XaTree, list[XaTree], XaTree] inlineDefs = {};
+public &T morph(&T tree, AST M) {
+	map[AST,AST] renaming = ();
+	rel[AST, list[AST], AST] inlineDefs = {};
 //	for(t <- tree)
 //		println("Input: ", unparse(t));
 	switch(M) {
@@ -237,7 +254,7 @@ public &T morph(&T tree, XaTree M) {
 	return applyInlining(tree, inlineDefs, renaming);
 }
 
-&T applyInlining(&T tree, rel[XaTree, list[XaTree], XaTree] inlineDefs, map[XaTree, XaTree] renaming) {
+&T applyInlining(&T tree, rel[AST, list[AST], AST] inlineDefs, map[AST, AST] renaming) {
 	return top-down-break visit(tree) {
 		case app: cons("Apply", [cons("Fun", [funName], _), seq(args, _)], _): {
 			inlineables = inlineDefs[funName];
@@ -246,7 +263,7 @@ public &T morph(&T tree, XaTree M) {
 				for(<params, body> <- inlineables, size(params) == size(args)) {
 					if(done)
 						println("Whoops: ambiguity in function call -- needs overload resolution:\n\t<unparse(funName)>(<unparse(args, ", ")>)");
-					map[XaTree, XaTree] subst = ();
+					map[AST, AST] subst = ();
 					args = applyInlining(args, inlineDefs, renaming);
 					for(<cons("Param", [paramName, paramType], _), arg> <- [<params[i], args[i]> | i <- domain(params)])
 						subst[paramName] = arg;
@@ -285,19 +302,19 @@ public loc findInPath(str name, str project) {
 	}
 }
 
-public list[XaTree] sortList(list[XaTree] lst)
+public list[AST] sortList(list[AST] lst)
 {
   if(size(lst) <= 1){
   	return lst;
   }
   
-  list[XaTree] less = [];
-  list[XaTree] greater = [];
-  XaTree pivot = lst[0];
+  list[AST] less = [];
+  list[AST] greater = [];
+  AST pivot = lst[0];
   
   <pivot, lst> = takeOneFrom(lst);
   
-  for(XaTree elm <- lst){
+  for(AST elm <- lst){
      if(leq(elm, pivot)){
        less = [elm] + less;
      } else {
@@ -321,7 +338,7 @@ map[str, int] declOrder = (
 	"AxiomClause" : -2
 );
 
-public bool leq(XaTree t1, XaTree t2) {
+public bool leq(AST t1, AST t2) {
 	if(cons(_, [cons(declClause1,[name1,x1*],_),y1*], _) := t1
 	&& cons(_, [cons(declClause2,[name2,x2*],_),y2*], _) := t2)
 	{
@@ -343,8 +360,13 @@ public bool leq(XaTree t1, XaTree t2) {
 		return t1 <= t2;
 }
 
-public XaTree setModuleName(XaTree tree, str name) {
-	rawPrintln(tree.args[0].args[0]);
-	tree.args[0].args[0] = cons("Name", [leaf(name, "ID")], "Name");
+public AST setModuleName(AST tree, str name) {
+	rawPrintln(tree.arg0);
+	tree.arg0.arg0 = Name(leaf(name));
 	return tree;
+}
+
+public AST qualify(AST moduleName, AST name) {
+	if(Name(n) := name)
+		return QName(moduleName, n);
 }
