@@ -1,0 +1,8 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: MetaXa
+Bundle-SymbolicName: MetaXa;singleton:=true
+Bundle-Version: 0.1.11
+Require-Bundle: rascal,
+ rascal_eclipse,
+ rascal_plugin

@@ -313,7 +313,7 @@ context-free priorities
 		 								-> InstExpr
 	InstExpr "morphism" InstExpr	-> InstExpr
  	
-	InstExpr "protect" AlgDecl		-> InstExpr
+	InstExpr "protect" AlgDeclOrName	-> InstExpr
 
  	InstExpr FilterExpr					-> InstExpr
 }
