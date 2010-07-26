@@ -84,3 +84,93 @@ data AST = PreOp(AST, AST);                                             // Expr 
 data AST = PreOp(AST, AST);                                             // Expr ::= LGNOT Expr
 data AST = CxxTree(AST);                                                // Program ::= Decl*
 
+data AST = leaf(str strVal) | var(str name) | seq(list[AST] args);
+
+anno loc AST@\loc;anno list[XaToken] AST@concrete;AST makeAST(str name, list[AST] args) {
+switch(name) {
+		case <"Name", [arg0]>: return Name(arg0);
+		case <"Name", [arg0]>: return Name(arg0);
+		case <"QName", [arg0, arg1]>: return QName(arg0, arg1);
+		case <"Type", [arg0]>: return Type(arg0);
+		case <"NilType", []>: return NilType();
+		case <"Struct", [arg0]>: return Struct(arg0);
+		case <"Int", [arg0]>: return Int(arg0);
+		case <"Real", [arg0]>: return Real(arg0);
+		case <"String", [arg0]>: return String(arg0);
+		case <"Hex", [arg0]>: return Hex(arg0);
+		case <"Bin", [arg0]>: return Bin(arg0);
+		case <"Oct", [arg0]>: return Oct(arg0);
+		case <"Block", [arg0]>: return Block(arg0);
+		case <"Nop", []>: return Nop();
+		case <"If", [arg0, arg1, arg2]>: return If(arg0, arg1, arg2);
+		case <"While", [arg0, arg1]>: return While(arg0, arg1);
+		case <"CxxFor", [arg0, arg1, arg2]>: return CxxFor(arg0, arg1, arg2);
+		case <"Call", [arg0, arg1]>: return Call(arg0, arg1);
+		case <"Proc", [arg0]>: return Proc(arg0);
+		case <"Yield", [arg0]>: return Yield(arg0);
+		case <"Break", []>: return Break();
+		case <"Return", []>: return Return();
+		case <"Assign", [arg0, arg1]>: return Assign(arg0, arg1);
+		case <"Let", [arg0, arg1]>: return Let(arg0, arg1);
+		case <"VarDef", [arg0, arg1, arg2]>: return VarDef(arg0, arg1, arg2);
+		case <"Assert", [arg0, arg1]>: return Assert(arg0, arg1);
+		case <"By", [arg0]>: return By(arg0);
+		case <"By", [arg0]>: return By(arg0);
+		case <"QED", []>: return QED();
+		case <"Undefined", []>: return Undefined();
+		case <"Var", [arg0]>: return Var(arg0);
+		case <"Literal", [arg0]>: return Literal(arg0);
+		case <"Apply", [arg0, arg1]>: return Apply(arg0, arg1);
+		case <"Fun", [arg0]>: return Fun(arg0);
+		case <"IfThenElseExpr", [arg0, arg1, arg2]>: return IfThenElseExpr(arg0, arg1, arg2);
+		case <"ListCons", [arg0]>: return ListCons(arg0);
+		case <"ListCons", [arg0, arg1]>: return ListCons(arg0, arg1);
+		case <"DefDecl", [arg0, arg1, arg2, arg3]>: return DefDecl(arg0, arg1, arg2, arg3);
+		case <"DefDecl", [arg0, arg1, arg2, arg3]>: return DefDecl(arg0, arg1, arg2, arg3);
+		case <"DefDecl", [arg0, arg1, arg2, arg3]>: return DefDecl(arg0, arg1, arg2, arg3);
+		case <"DefDecl", [arg0, arg1, arg2, arg3]>: return DefDecl(arg0, arg1, arg2, arg3);
+		case <"NoDefDecl", [arg0, arg1, arg2]>: return NoDefDecl(arg0, arg1, arg2);
+		case <"NoDefDecl", [arg0, arg1, arg2]>: return NoDefDecl(arg0, arg1, arg2);
+		case <"NoDefDecl", [arg0, arg1, arg2]>: return NoDefDecl(arg0, arg1, arg2);
+		case <"DeclBody", [arg0]>: return DeclBody(arg0);
+		case <"ProcClause", [arg0, arg1]>: return ProcClause(arg0, arg1);
+		case <"Assign", []>: return Assign();
+		case <"FunClause", [arg0, arg1, arg2]>: return FunClause(arg0, arg1, arg2);
+		case <"Guard", [arg0]>: return Guard(arg0);
+		case <"PredClause", [arg0, arg1]>: return PredClause(arg0, arg1);
+		case <"AxiomClause", [arg0, arg1]>: return AxiomClause(arg0, arg1);
+		case <"AxiomClause", [arg0, arg1]>: return AxiomClause(arg0, arg1);
+		case <"AxiomClause", [arg0, arg1]>: return AxiomClause(arg0, arg1);
+		case <"Dummy", [arg0]>: return Dummy(arg0);
+		case <"Dummy", [arg0]>: return Dummy(arg0);
+		case <"Param", [arg0, arg1]>: return Param(arg0, arg1);
+		case <"Param", [arg0, arg1]>: return Param(arg0, arg1);
+		case <"ObsParam", [arg0, arg1]>: return ObsParam(arg0, arg1);
+		case <"AnonParam", [arg0]>: return AnonParam(arg0);
+		case <"VarClause", [arg0, arg1]>: return VarClause(arg0, arg1);
+		case <"TypeClause", [arg0]>: return TypeClause(arg0);
+		case <"DotOp", [arg0, arg1]>: return DotOp(arg0, arg1);
+		case <"DotOp", [arg0, arg1]>: return DotOp(arg0, arg1);
+		case <"BinOp", [arg0, arg1, arg2]>: return BinOp(arg0, arg1, arg2);
+		case <"BinOp", [arg0, arg1, arg2]>: return BinOp(arg0, arg1, arg2);
+		case <"BinOp", [arg0, arg1, arg2]>: return BinOp(arg0, arg1, arg2);
+		case <"BinOp", [arg0, arg1, arg2]>: return BinOp(arg0, arg1, arg2);
+		case <"BinOp", [arg0, arg1, arg2]>: return BinOp(arg0, arg1, arg2);
+		case <"In", [arg0, arg1]>: return In(arg0, arg1);
+		case <"NotIn", [arg0, arg1]>: return NotIn(arg0, arg1);
+		case <"BinOp", [arg0, arg1, arg2]>: return BinOp(arg0, arg1, arg2);
+		case <"BinOp", [arg0, arg1, arg2]>: return BinOp(arg0, arg1, arg2);
+		case <"BinOp", [arg0, arg1, arg2]>: return BinOp(arg0, arg1, arg2);
+		case <"BinOp", [arg0, arg1, arg2]>: return BinOp(arg0, arg1, arg2);
+		case <"BinOp", [arg0, arg1, arg2]>: return BinOp(arg0, arg1, arg2);
+		case <"BinOp", [arg0, arg1, arg2]>: return BinOp(arg0, arg1, arg2);
+		case <"BinOp", [arg0, arg1, arg2]>: return BinOp(arg0, arg1, arg2);
+		case <"BinOp", [arg0, arg1, arg2]>: return BinOp(arg0, arg1, arg2);
+		case <"Index", [arg0, arg1]>: return Index(arg0, arg1);
+		case <"PreOp", [arg0, arg1]>: return PreOp(arg0, arg1);
+		case <"PreOp", [arg0, arg1]>: return PreOp(arg0, arg1);
+		case <"PreOp", [arg0, arg1]>: return PreOp(arg0, arg1);
+		case <"CxxTree", [arg0]>: return CxxTree(arg0);
+
+}
+}

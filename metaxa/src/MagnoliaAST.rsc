@@ -50,10 +50,10 @@ data AST = UnionRep(AST);                                               // DataR
 data AST = TermRep(AST);                                                // DataRep ::= {ConsSpec ","}* ";"
 data AST = TermCons0(AST);                                              // ConsSpec ::= Identifier
 data AST = TermCons(AST, AST);                                          // ConsSpec ::= Identifier "(" {DataRep ","}* ")"
-data AST = DefDecl(AST, AST, AST, AST);                                 // BraceDecl ::= Modifier* StatDeclarative SubClause* BlockStat
-data AST = DefDecl(AST, AST, AST, AST);                                 // SemiDecl ::= Modifier* ExprDeclarative SubClause* "=" Expr ";"
-data AST = DefDecl(AST, AST, AST, AST);                                 // Decl ::= Modifier* TypeDeclarative SubClause* "=" Type ";"
-data AST = DefDecl(AST, AST, AST, AST);                                 // BraceDecl ::= Modifier* DeclDeclarative SubClause* DeclBody
+data AST = StatDef(AST, AST, AST, AST);                                 // BraceDecl ::= Modifier* StatDeclarative SubClause* BlockStat
+data AST = ExprDef(AST, AST, AST, AST);                                 // SemiDecl ::= Modifier* ExprDeclarative SubClause* "=" Expr ";"
+data AST = TypeDef(AST, AST, AST, AST);                                 // Decl ::= Modifier* TypeDeclarative SubClause* "=" Type ";"
+data AST = DeclDef(AST, AST, AST, AST);                                 // BraceDecl ::= Modifier* DeclDeclarative SubClause* DeclBody
 data AST = DeclBody(AST);                                               // DeclBody ::= "{" Decl* "}"
 data AST = ProtectModifier();                                           // Modifier ::= "protect"
 data AST = Attrs(AST);                                                  // AttrClause ::= "[" {Attribute ","}* "]"
@@ -92,12 +92,12 @@ data AST = FullOf(AST);                                                 // InstE
 data AST = OnOf(AST);                                                   // InstExpr ::= "on" InstExpr
 data AST = DeclaredOf(AST);                                             // InstExpr ::= "declared" InstExpr
 data AST = Filtered(AST, AST);                                          // InstExpr ::= InstExpr FilterExpr
-data AST = RetainFilter(AST);                                           // FilterExpr ::= "retain" InstExpr
-data AST = RemoveFilter(AST);                                           // FilterExpr ::= "remove" InstExpr
+data AST = RetainFilter(AST);                                           // FilterExpr ::= "retain" AlgDeclOrName
+data AST = RemoveFilter(AST);                                           // FilterExpr ::= "remove" AlgDeclOrName
 data AST = Renamed(AST, AST);                                           // InstExpr ::= InstExpr "[" {Renaming ","}* "]"
 data AST = RenameImpl(AST);                                             // InstExpr ::= "[" {Renaming ","}* "]"
 data AST = Morphed(AST, AST);                                           // InstExpr ::= InstExpr "morphism" InstExpr
-data AST = Protected(AST, AST);                                         // InstExpr ::= InstExpr "protect" AlgDecl
+data AST = Protected(AST, AST);                                         // InstExpr ::= InstExpr "protect" AlgDeclOrName
 data AST = OnDefines(AST, AST);                                         // InstExpr ::= "on" InstExpr "defines" AlgDecl
 data AST = Defines(AST);                                                // InstExpr ::= "defines" AlgDecl
 data AST = External(AST);                                               // InstExpr ::= "external" ExternalExpr
@@ -117,14 +117,14 @@ data AST = ExternalOnDefines(AST, AST, AST, AST);                       // Exter
 data AST = ExternalExtendsOnDefines(AST, AST, AST, AST, AST);           // ExternalExpr ::= Identifier Name "extends" InstExpr "on" InstExpr "defines" InstExpr
 data AST = Rename(AST, AST);                                            // Renaming ::= Name "=>" Name
 data AST = Decls(AST);                                                  // AlgDecl ::= DeclBody
-data AST = StatDef(AST, AST, AST, AST);                                 // SingleAlgDecl ::= Modifier* StatDeclarative SubClause* "=" BlockStat
-data AST = ExprDef(AST, AST, AST, AST);                                 // SingleAlgDecl ::= Modifier* ExprDeclarative SubClause* "=" Expr
-data AST = TypeDef(AST, AST, AST, AST);                                 // SingleAlgDecl ::= Modifier* TypeDeclarative SubClause* "=" Type
-data AST = DeclDef(AST, AST, AST, AST);                                 // SingleAlgDecl ::= Modifier* DeclDeclarative SubClause* "=" DeclBody
-data AST = StatDecl(AST, AST, AST);                                     // SingleAlgDecl ::= Modifier* StatDeclarative SubClause*
-data AST = ExprDecl(AST, AST, AST);                                     // SingleAlgDecl ::= Modifier* ExprDeclarative SubClause*
-data AST = TypeDecl(AST, AST, AST);                                     // SingleAlgDecl ::= Modifier* TypeDeclarative SubClause*
-data AST = DeclDecl(AST, AST, AST);                                     // SingleAlgDecl ::= Modifier* DeclDeclarative SubClause*
+data AST = DefDeclNS(AST, AST, AST, AST);                               // SingleAlgDecl ::= Modifier* StatDeclarative SubClause* "=" BlockStat
+data AST = DefDeclNS(AST, AST, AST, AST);                               // SingleAlgDecl ::= Modifier* ExprDeclarative SubClause* "=" Expr
+data AST = DefDeclNS(AST, AST, AST, AST);                               // SingleAlgDecl ::= Modifier* TypeDeclarative SubClause* "=" Type
+data AST = DefDeclNS(AST, AST, AST, AST);                               // SingleAlgDecl ::= Modifier* DeclDeclarative SubClause* "=" DeclBody
+data AST = NoDefDeclNS(AST, AST, AST);                                  // SingleAlgDecl ::= Modifier* StatDeclarative SubClause*
+data AST = NoDefDeclNS(AST, AST, AST);                                  // SingleAlgDecl ::= Modifier* ExprDeclarative SubClause*
+data AST = NoDefDeclNS(AST, AST, AST);                                  // SingleAlgDecl ::= Modifier* TypeDeclarative SubClause*
+data AST = NoDefDeclNS(AST, AST, AST);                                  // SingleAlgDecl ::= Modifier* DeclDeclarative SubClause*
 data AST = Requires(AST);                                               // Decl ::= "requires" {InstExpr ","}+ ";"
 data AST = Preserve(AST);                                               // Decl ::= "preserve" InstExpr ";"
 data AST = Congruence(AST);                                             // Decl ::= "congruence" InstExpr ";"
@@ -206,6 +206,9 @@ data AST = UserSyntax5(AST, AST, AST);                                  // Stat 
 
 data AST = leaf(str strVal) | var(str name) | seq(list[AST] args);
 
+data XaToken = token(str chars) | space(str chars) | comment(str chars) | child(int index) | sep(XaToken tok, str chars);
+anno loc AST@\loc;
+anno list[XaToken] AST@concrete;
 AST makeAST(str name, list[AST] args) {
 switch(name) {
 		case <"MagnoliaTree", [arg0, arg1]>: return MagnoliaTree(arg0, arg1);
@@ -258,10 +261,10 @@ switch(name) {
 		case <"TermRep", [arg0]>: return TermRep(arg0);
 		case <"TermCons0", [arg0]>: return TermCons0(arg0);
 		case <"TermCons", [arg0, arg1]>: return TermCons(arg0, arg1);
-		case <"DefDecl", [arg0, arg1, arg2, arg3]>: return DefDecl(arg0, arg1, arg2, arg3);
-		case <"DefDecl", [arg0, arg1, arg2, arg3]>: return DefDecl(arg0, arg1, arg2, arg3);
-		case <"DefDecl", [arg0, arg1, arg2, arg3]>: return DefDecl(arg0, arg1, arg2, arg3);
-		case <"DefDecl", [arg0, arg1, arg2, arg3]>: return DefDecl(arg0, arg1, arg2, arg3);
+		case <"StatDef", [arg0, arg1, arg2, arg3]>: return StatDef(arg0, arg1, arg2, arg3);
+		case <"ExprDef", [arg0, arg1, arg2, arg3]>: return ExprDef(arg0, arg1, arg2, arg3);
+		case <"TypeDef", [arg0, arg1, arg2, arg3]>: return TypeDef(arg0, arg1, arg2, arg3);
+		case <"DeclDef", [arg0, arg1, arg2, arg3]>: return DeclDef(arg0, arg1, arg2, arg3);
 		case <"DeclBody", [arg0]>: return DeclBody(arg0);
 		case <"ProtectModifier", []>: return ProtectModifier();
 		case <"Attrs", [arg0]>: return Attrs(arg0);
@@ -325,14 +328,14 @@ switch(name) {
 		case <"ExternalExtendsOnDefines", [arg0, arg1, arg2, arg3, arg4]>: return ExternalExtendsOnDefines(arg0, arg1, arg2, arg3, arg4);
 		case <"Rename", [arg0, arg1]>: return Rename(arg0, arg1);
 		case <"Decls", [arg0]>: return Decls(arg0);
-		case <"StatDef", [arg0, arg1, arg2, arg3]>: return StatDef(arg0, arg1, arg2, arg3);
-		case <"ExprDef", [arg0, arg1, arg2, arg3]>: return ExprDef(arg0, arg1, arg2, arg3);
-		case <"TypeDef", [arg0, arg1, arg2, arg3]>: return TypeDef(arg0, arg1, arg2, arg3);
-		case <"DeclDef", [arg0, arg1, arg2, arg3]>: return DeclDef(arg0, arg1, arg2, arg3);
-		case <"StatDecl", [arg0, arg1, arg2]>: return StatDecl(arg0, arg1, arg2);
-		case <"ExprDecl", [arg0, arg1, arg2]>: return ExprDecl(arg0, arg1, arg2);
-		case <"TypeDecl", [arg0, arg1, arg2]>: return TypeDecl(arg0, arg1, arg2);
-		case <"DeclDecl", [arg0, arg1, arg2]>: return DeclDecl(arg0, arg1, arg2);
+		case <"DefDeclNS", [arg0, arg1, arg2, arg3]>: return DefDeclNS(arg0, arg1, arg2, arg3);
+		case <"DefDeclNS", [arg0, arg1, arg2, arg3]>: return DefDeclNS(arg0, arg1, arg2, arg3);
+		case <"DefDeclNS", [arg0, arg1, arg2, arg3]>: return DefDeclNS(arg0, arg1, arg2, arg3);
+		case <"DefDeclNS", [arg0, arg1, arg2, arg3]>: return DefDeclNS(arg0, arg1, arg2, arg3);
+		case <"NoDefDeclNS", [arg0, arg1, arg2]>: return NoDefDeclNS(arg0, arg1, arg2);
+		case <"NoDefDeclNS", [arg0, arg1, arg2]>: return NoDefDeclNS(arg0, arg1, arg2);
+		case <"NoDefDeclNS", [arg0, arg1, arg2]>: return NoDefDeclNS(arg0, arg1, arg2);
+		case <"NoDefDeclNS", [arg0, arg1, arg2]>: return NoDefDeclNS(arg0, arg1, arg2);
 		case <"Requires", [arg0]>: return Requires(arg0);
 		case <"Preserve", [arg0]>: return Preserve(arg0);
 		case <"Congruence", [arg0]>: return Congruence(arg0);

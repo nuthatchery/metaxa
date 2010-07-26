@@ -69,19 +69,19 @@ exports
 
     Modifier* StatDeclarative SubClause* BlockStat
 	-> BraceDecl
-		{cons("DefDecl")}
+		{cons("StatDef")}
 
     Modifier* ExprDeclarative SubClause* "=" Expr ";"
 	-> SemiDecl
-		{cons("DefDecl")}
+		{cons("ExprDef")}
 
     Modifier* TypeDeclarative SubClause* "=" Type ";"
 	-> Decl
-		{cons("DefDecl")}
+		{cons("TypeDef")}
 
     Modifier* DeclDeclarative SubClause* DeclBody
 	-> BraceDecl
-		{cons("DefDecl")}
+		{cons("DeclDef")}
 
     "{" Decl* "}" -> DeclBody {cons("DeclBody"), dummy}
 

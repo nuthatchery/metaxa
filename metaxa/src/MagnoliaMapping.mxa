@@ -152,9 +152,9 @@ syntax skin
 
 	ExternalExpr(: Identifier Name on InstExpr defines InstExpr :) -> (+ Identifier Name on InstExpr defines InstExpr +)
 
-	FilterExpr(: remove InstExpr :)                   -> (+ remove InstExpr +)
+	FilterExpr(: remove AlgDeclOrName :)              -> (+ remove AlgDeclOrName +)
 
-	FilterExpr(: retain InstExpr :)                   -> (+ retain InstExpr +)
+	FilterExpr(: retain AlgDeclOrName :)              -> (+ retain AlgDeclOrName +)
 
 	Fun(: FunName :)                                  -> (+ FunName +)
 
@@ -208,7 +208,7 @@ syntax skin
 
 	InstExpr(: InstExpr on Filter :)                  -> (+ InstExpr on Filter +)
 
-	InstExpr(: InstExpr protect AlgDecl :)            -> (+ InstExpr protect AlgDecl +)
+	InstExpr(: InstExpr protect AlgDeclOrName :)      -> (+ InstExpr protect AlgDeclOrName +)
 
 	InstExpr(: InstExpr quotient InstExpr :)          -> (+ InstExpr quotient InstExpr +)
 

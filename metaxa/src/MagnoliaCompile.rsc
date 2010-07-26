@@ -13,7 +13,6 @@ data ErrorMark = Mark(str severity, str message, list[loc] locs);
 data MagnoliaEnv = environ(envRelation members);
 data RuntimeException = LookupError(AST name);
 anno set[ErrorMark] AST@mark;
-anno loc AST@\loc;
 public MagnoliaEnv newEnv() {
 	return environ({});
 }
@@ -183,9 +182,9 @@ public AST flattenTopExpr(str kind, AST body, MagnoliaEnv ctx) {
 	switch(body) {
 		case Decls(DeclBody(seq(ds))):
 			result =  Decls(DeclBody(seq(flattenDeclList(ds, ctx))));
-		case DefDecl(_, _, _, _):
+		case DefDeclNS(_, _, _, _):
 			result = Decls(DeclBody(seq(flattenDeclList([body], ctx))));
-		case NoDefDecl(_, _, _):
+		case NoDefDeclNS(_, _, _):
 			result = Decls(DeclBody(seq(flattenDeclList([body], ctx))));
 		case n: Name(_): {
 			result =  flattenTopExpr(kind, lookup(n, ctx), ctx) ? addMark(body, "Top-level name <n> not defined");
@@ -241,6 +240,8 @@ public AST flattenTopExpr(str kind, AST body, MagnoliaEnv ctx) {
 				flattenTopExpr(kind, b, ctx),
 				flattenTopExpr(kind, c, ctx),
 				flattenTopExpr(kind, d, ctx));
+		default:
+			println("Unknown top expr: <trunc(body)>");
 	}
 	
 	return preserveAnnos(result, body);
@@ -254,9 +255,12 @@ public list[AST] flattenDeclList(list[AST] ds, MagnoliaEnv ctx) {
 			case Requires(seq(reqs)):
 				for(req <- reqs) {
 					req = flattenTopExpr("concept", req, ctx);
-					if(Decls(DeclBody(seq(ds1))) := req) {
+					if(Decls(DeclBody(seq([d1, ds1*]))) := req) {
+						result += {d1[@mark = ((d1@mark ? {}) + (req@mark ? {}))]};
 						result += toSet(ds1);
 					}
+					else if(Decls(DeclBody(seq([]))) := req)
+						result += {Nop()[@mark = (req@mark ? {})]};
 					else if(Name(_) := req) {
 						result += req;
 					}
@@ -303,7 +307,7 @@ public AST morph(AST tree, AST morphism) {
 		rel[AST, list[AST], AST] inlineDefs = {};
 	
 		switch(morphism) {
-			case DefDecl(_,FunClause(n,Dummy(seq(as)),t),_,body): {
+			case DefDeclNS(_,FunClause(n,Dummy(seq(as)),t),_,body): {
 				inlineDefs = {<n, as, body>};
 			}
 			case Decls(DeclBody(seq(ds))): {
@@ -320,76 +324,89 @@ public AST morph(AST tree, AST morphism) {
 				return Morphed(tree, addMark(morphism, "Unknown morphism"));
 			}
 		}
-		return applyInlining(tree, inlineDefs, renaming);
+		return addMarks(applyInlining(tree, inlineDefs, renaming));
 	}
 	else // (probably) unable to morph anything else
 		return tree;
 }
 
-AST applyInlining(AST tree, rel[AST, list[AST], AST] inlineDefs, map[AST, AST] renaming) {
-	set[AST] usedRenamings = {};
-	set[AST] usedInlines = {};
-	set[AST] foundDecls = {};
+data InlineInfo = inlineInfo(
+		rel[AST, list[AST], AST] inlineDefs,
+		map[AST, AST] renaming,
+		set[AST] usedRenamings,
+		set[AST] usedInlines,
+		set[AST] foundDecls,
+		set[ErrorMark] marks);
+		
+tuple[AST, set[ErrorMark]] applyInlining(AST tree, rel[AST, list[AST], AST] inlineDefs, map[AST, AST] renaming) {
+	<result, info> = applyInliningInternal(tree, inlineInfo(inlineDefs, renaming, {}, {}, {}, {})); 
+	set[ErrorMark] marks = info.marks;
+	for(n <- info.inlineDefs<0>) {
+		if(n notin info.foundDecls)
+			marks = addMark(marks, "Inlined operation <n> not declared in body\n",
+					"warning", [n@\loc]?[]);
+		if(n notin info.usedInlines)
+			marks = addMark(marks, "Inlined operation <n> not used in body\n",
+					"warning", [n@\loc]?[]);
+	}
+
+	for(n <- domain(info.renaming)) {
+		if(n notin info.usedRenamings)
+			marks = addMark(marks, "Renamed name <n> not used in body\n",
+					"warning", [n@\loc]?[]);
+	}
+	
+	return <result, marks>;
+}
+
+tuple[AST, InlineInfo] applyInliningInternal(AST tree, InlineInfo info) {
 	result = top-down-break visit(tree) {
 		case app: Apply(Fun(funName), seq(args)): {
-			<_, params, body> = overload(funName, inlineDefs, args);
+			<_, params, body> = overload(funName, info.inlineDefs, args);
 			if(body != Nop()) {
 				map[AST, AST] subst = ();
-				seq(args) := applyInlining(seq(args), inlineDefs, renaming);
-				for(<Param(paramName, paramType), arg> <- [<params[i], args[i]> | i <- domain(params)])
-					subst[paramName] = arg;
-				body = applyInlining(body, {}, subst);
-				// println("<app> =\> <body>");
-				usedInlines += {funName};
-				insert preserveAnnos(body, app);
+				<args0, info> = applyInliningInternal(seq(args), info);
+				if(seq(inlinedArgs) := args0) {
+					for(<Param(paramName, paramType), arg> <- [<params[i], inlinedArgs[i]> | i <- domain(params)])
+						subst[paramName] = arg;
+					<body, _> = applyInlining(body, {}, subst);
+					// println("<app> =\> <body>");
+					info.usedInlines += {funName};
+					insert preserveAnnos(body, app);
+				}
+					
 			}
 			else
 				fail;
 		}
 		case NoDefDecl(_,FunClause(funName,Dummy(seq(args)),_),_): {
-			<n, _, _> = overload(funName, inlineDefs, args);
+			<n, _, _> = overload(funName, info.inlineDefs, args);
 			if(n != Nop()) {
-				foundDecls += {funName};
+				info.foundDecls += {funName};
 				insert Nop();
 			}
 			else
 				fail;
 		}
 		case DefDecl(_,FunClause(funName,Dummy(seq(args)),_),_,_): {
-			<n, _, _> = overload(funName, inlineDefs, args);
+			<n, _, _> = overload(funName, info.inlineDefs, args);
 			if(n != Nop()) {
-				foundDecls += {funName};
+				info.foundDecls += {funName};
 				insert Nop();
 			}
 			else
 				fail;
 		}
 		case n: Name(_): {
-			if(n in renaming) {
-				usedRenamings += {n};
-				insert renaming[n];
+			if(n in info.renaming) {
+				info.usedRenamings += {n};
+				insert info.renaming[n];
 			}
 			else
 				fail;
 		}
 	}
-
-	for(n <- inlineDefs<0>) {
-		if(n notin foundDecls)
-			result = addMark(result, "Inlined operation <n> not declared in body\n",
-					"warning", [n@\loc]?[]);
-		if(n notin usedInlines)
-			result = addMark(result, "Inlined operation <n> not used in body\n",
-					"warning", [n@\loc]?[]);
-	}
-
-	for(n <- domain(renaming)) {
-		if(n notin usedRenamings)
-			result = addMark(result, "Renamed name <n> not used in body\n",
-					"warning", [n@\loc]?[]);
-	}
-	
-	return result;
+	return <result, info>;
 }
 
 public tuple[AST,list[AST],AST] overload(AST name, rel[AST,list[AST],AST] defs, list[AST] args) {
@@ -416,8 +433,27 @@ public AST addMark(AST tree, str msg, str severity) {
 }
 
 public AST addMark(AST tree, str msg, str severity, list[loc] locs) {
+	if(locs == [])
+		locs = [tree@\loc] ? []; 
 	oldMarks = tree@mark ? {};
 	return tree[@mark = (oldMarks + {Mark(severity, "<severityMsg[severity]>: <msg>", locs)})];
+}
+
+public set[ErrorMark] addMark(set[ErrorMark] marks, str msg) {
+	return addMark(marks, msg, "error", []);
+}
+
+public set[ErrorMark] addMark(set[ErrorMark] marks, str msg, str severity) {
+	return addMark(marks, msg, severity, []);
+}
+
+public set[ErrorMark] addMark(set[ErrorMark] marks, str msg, str severity, list[loc] locs) {
+	return marks + {Mark(severity, "<severityMsg[severity]>: <msg>", locs)};
+}
+
+public AST addMarks(tuple[AST, set[ErrorMark]] treeAndMark) {
+	oldMarks = treeAndMark[0]@mark ? {};
+	return treeAndMark[0][@mark = (oldMarks + treeAndMark[1])];
 }
  
 public loc findInPath(str name, str project) {
