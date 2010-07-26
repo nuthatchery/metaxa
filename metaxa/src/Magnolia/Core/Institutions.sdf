@@ -174,28 +174,28 @@ exports
 	SingleAlgDecl -> AlgDecl	{abstract}
 	
 	Modifier* StatDeclarative SubClause* "=" BlockStat
-	-> SingleAlgDecl	{cons("StatDef")}
+	-> SingleAlgDecl	{cons("DefDecl")}
 
     Modifier* ExprDeclarative SubClause* "=" Expr
-	-> SingleAlgDecl	{cons("ExprDef")}
+	-> SingleAlgDecl	{cons("DefDecl")}
 
     Modifier* TypeDeclarative SubClause* "=" Type
-	-> SingleAlgDecl	{cons("TypeDef")}
+	-> SingleAlgDecl	{cons("DefDecl")}
 
     Modifier* DeclDeclarative SubClause* "=" DeclBody
-	-> SingleAlgDecl	{cons("DeclDef")}
+	-> SingleAlgDecl	{cons("DefDecl")}
  
 	Modifier* StatDeclarative SubClause*
-	-> SingleAlgDecl	{cons("StatDecl")}
+	-> SingleAlgDecl	{cons("NoDefDecl")}
 
     Modifier* ExprDeclarative SubClause*
-	-> SingleAlgDecl	{cons("ExprDecl")}
+	-> SingleAlgDecl	{cons("NoDefDecl")}
 
     Modifier* TypeDeclarative SubClause*
-	-> SingleAlgDecl	{cons("TypeDecl")}
+	-> SingleAlgDecl	{cons("NoDefDecl")}
 
     Modifier* DeclDeclarative SubClause*
-	-> SingleAlgDecl	{cons("DeclDecl")}
+	-> SingleAlgDecl	{cons("NoDefDecl")}
 	
 	Name -> AlgDeclOrName
 

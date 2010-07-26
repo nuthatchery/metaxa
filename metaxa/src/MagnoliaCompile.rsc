@@ -3,17 +3,26 @@ import String;
 import IO;
 import Set;
 import List;
+import Map;
 import XaLib;
 //import XaTree;
 import MagnoliaAST;
 import Node;
 alias envRelation = rel[AST sort, AST qname, AST name, AST attrs, AST def];
+data ErrorMark = Mark(str severity, str message, list[loc] locs);
 data MagnoliaEnv = environ(envRelation members);
 data RuntimeException = LookupError(AST name);
-anno str AST@error;
+anno set[ErrorMark] AST@mark;
+anno loc AST@\loc;
 public MagnoliaEnv newEnv() {
 	return environ({});
 }
+
+map[str,str] severityMsg = (
+	"warning" : "Warning",
+	"error" : "Error",
+	"internal" : "Internal Error",
+	"info" : "Info");
 
 public MagnoliaEnv joinEnv(MagnoliaEnv env1, MagnoliaEnv env2) {
 	env = newEnv();
@@ -38,11 +47,11 @@ public AST lookup(AST n, MagnoliaEnv ctx) {
 	if(size(result) == 1)
 		return getOneFrom(result);
 	else if(size(result) > 1) {
-		println("Ambiguous name <n>");
+		println("Ambiguous overloaded name <n>");
 		throw LookupError(n);
 	}
 	else {
-		println("Name <n> not found");
+		// println("Name <n> not found");
 		throw LookupError(n);
 	}
 }
@@ -138,7 +147,6 @@ public MagnoliaEnv loadTree(AST tree, MagnoliaEnv result) {
 				}
 			}
 			if(found) {
-				println("Defined <def[0]> <def[1]>");
 				result.members += {def};
 			}
 		}
@@ -148,6 +156,7 @@ public MagnoliaEnv loadTree(AST tree, MagnoliaEnv result) {
 
 public AST flattenConcepts(AST tree, MagnoliaEnv env) {
 	if(MagnoliaTree(ModuleHead(moduleName, seq(CLAUSES)), seq(DECLS)) := tree) {
+		println("Flattening module <moduleName>");
 		list[AST] flatDecls = [];
 	
 		for(decl <- DECLS) {
@@ -170,23 +179,71 @@ public AST flattenConcepts(AST tree, MagnoliaEnv env) {
 }
 
 public AST flattenTopExpr(str kind, AST body, MagnoliaEnv ctx) {
+	result = body;
 	switch(body) {
 		case Decls(DeclBody(seq(ds))):
-			return Decls(DeclBody(seq(flattenDeclList(ds, ctx))));
-		case Morphed(expr, morphism):
-			return morph(flattenTopExpr(kind, expr, ctx), morphism);
+			result =  Decls(DeclBody(seq(flattenDeclList(ds, ctx))));
+		case DefDecl(_, _, _, _):
+			result = Decls(DeclBody(seq(flattenDeclList([body], ctx))));
+		case NoDefDecl(_, _, _):
+			result = Decls(DeclBody(seq(flattenDeclList([body], ctx))));
 		case n: Name(_): {
-			return flattenTopExpr(kind, lookup(n, ctx), ctx) ? body[@error="Top-level name <n> not defined"];
+			result =  flattenTopExpr(kind, lookup(n, ctx), ctx) ? addMark(body, "Top-level name <n> not defined");
 		}
 		case Models(a, b):
-			return Models(flattenTopExpr(kind, a, ctx), flattenTopExpr(kind, b, ctx));
+			result =  Models(flattenTopExpr(kind, a, ctx), flattenTopExpr(kind, b, ctx));
 		case WithModels(a, w, b):
-			return Models(flattenTopExpr(kind, a, ctx),
+			result =  WithModels(flattenTopExpr(kind, a, ctx),
 						flattenTopExpr(kind, w, ctx),
 						flattenTopExpr(kind, b, ctx));
-		default:
-			return body;
+		case SignatureOf(a):
+			result =  SignatureOf(flattenTopExpr("any", a, ctx));
+		case FullOf(a):
+			result =  FullOf(flattenTopExpr("any", a, ctx));
+		case DeclaredOf(a):
+			result =  DeclaredOf(flattenTopExpr("any", a, ctx));
+		case Filtered(a, f):
+			result =  Filtered(flattenTopExpr("any", a, ctx), f);
+		case OnFilter(a, f):
+			result =  OnFilter(flattenTopExpr("any", a, ctx), f);
+		case DeclaredFilter(a, f):
+			result =  DeclaredFilter(flattenTopExpr("any", a, ctx), f);
+		case Morphed(expr, morphism):
+			result =  morph(flattenTopExpr(kind, expr, ctx), morphism);
+		case Renamed(a, r):
+			result = morph(flattenTopExpr(kind, a, ctx), r);
+		case Protected(expr, protect):
+			result =  Protected(flattenTopExpr(kind, expr, ctx), protect);
+		case OnDefines(a, defs):
+			result =  OnDefines(flattenTopExpr(kind, a, ctx), defs);
+		case Defines(defs):
+			;
+		case External(ext):
+			;
+		case At(a, b):
+			result = At(flattenTopExpr(kind, a, ctx), flattenTopExpr(kind, b, ctx));
+		case AtAt(a, b):
+			result = AtAt(flattenTopExpr(kind, a, ctx), flattenTopExpr(kind, b, ctx));
+		case Plus(a, b):
+			result = Plus(flattenTopExpr(kind, a, ctx), flattenTopExpr(kind, b, ctx));
+		case PlusPlus(a, b):
+			result = PlusPlus(flattenTopExpr(kind, a, ctx), flattenTopExpr(kind, b, ctx));
+		case Times(a, b):
+			result = Times(flattenTopExpr(kind, a, ctx), flattenTopExpr(kind, b, ctx));
+		case Times(a, b):
+			result = TimesTimes(flattenTopExpr(kind, a, ctx), flattenTopExpr(kind, b, ctx));
+		case DataInvariant(a, b):
+			result = DataInvariant(flattenTopExpr(kind, a, ctx), b);
+		case Quotient(a, b):
+			result = Quotient(flattenTopExpr(kind, a, ctx), b);
+		case Homomorphism(a, b, c, d):
+			result = Homomorphism(flattenTopExpr(kind, a, ctx),
+				flattenTopExpr(kind, b, ctx),
+				flattenTopExpr(kind, c, ctx),
+				flattenTopExpr(kind, d, ctx));
 	}
+	
+	return preserveAnnos(result, body);
 }
 
 public list[AST] flattenDeclList(list[AST] ds, MagnoliaEnv ctx) {
@@ -196,15 +253,16 @@ public list[AST] flattenDeclList(list[AST] ds, MagnoliaEnv ctx) {
 		switch(decl) {
 			case Requires(seq(reqs)):
 				for(req <- reqs) {
-					println("Requires <trunc(req)>");
 					req = flattenTopExpr("concept", req, ctx);
 					if(Decls(DeclBody(seq(ds1))) := req) {
-						println("  decls added");
 						result += toSet(ds1);
 					}
+					else if(Name(_) := req) {
+						result += req;
+					}
 					else {
-						println("  no expansion found: <trunc(req)>");
-						result += {Requires(seq([req]))[@error="Unable to flatten expression"]};
+						//			println("  no expansion found: <trunc(req)>");
+						result += {Requires(seq([addMark(req, "Unable to flatten expression", "internal")]))};
 					}
 				}
 			default:
@@ -222,59 +280,116 @@ public str trunc(AST tree) {
 		return s;
 }
 
-public &T morph(&T tree, AST morphism) {
-	map[AST,AST] renaming = ();
-	rel[AST, list[AST], AST] inlineDefs = {};
-
-	switch(morphism) {
-		case ExprDef(_,FunClause(n,Dummy(seq(as)),t),_,body): {
-			inlineDefs = {<n, as, body>};
-		}
-		case seq([rn*]): {
-			for(Rename(x, y) <- rn) {
-				println("Rename: <x>, <y>");
-				rename += (x : y);
+public AST preserveAnnos(AST tree, AST orig) {
+	if(tree == orig)
+		return tree;
+	treeAnnos = getAnnotations(tree);
+	origAnnos = getAnnotations(orig);
+	for(a <- origAnnos) {
+		if(a notin treeAnnos) {
+			if(a == "concrete") {
+				if(getName(tree) == getName(orig))
+					treeAnnos[a] = origAnnos[a];
 			}
-		}
-		default: {
-			println("Unknown morphism: <morphism>");
-			return Morphed(tree, morphism[@error="Unknown morphism"]);
+			else
+				treeAnnos[a] = origAnnos[a];
 		}
 	}
-	return applyInlining(tree, inlineDefs, renaming);
+	return setAnnotations(tree, treeAnnos);
+}
+public AST morph(AST tree, AST morphism) {
+	if(Decls(_) := tree) {
+		map[AST,AST] renaming = ();
+		rel[AST, list[AST], AST] inlineDefs = {};
+	
+		switch(morphism) {
+			case DefDecl(_,FunClause(n,Dummy(seq(as)),t),_,body): {
+				inlineDefs = {<n, as, body>};
+			}
+			case Decls(DeclBody(seq(ds))): {
+				for(DefDecl(_,FunClause(n,Dummy(seq(as)),t),_,body) <- ds)
+					inlineDefs = {<n, as, body>};
+			}
+			case seq([rn*]): {
+				for(Rename(x, y) <- rn) {
+					renaming += (x : y);
+				}
+			}
+			default: {
+				println("Unknown morphism: <morphism>");
+				return Morphed(tree, addMark(morphism, "Unknown morphism"));
+			}
+		}
+		return applyInlining(tree, inlineDefs, renaming);
+	}
+	else // (probably) unable to morph anything else
+		return tree;
 }
 
-&T applyInlining(&T tree, rel[AST, list[AST], AST] inlineDefs, map[AST, AST] renaming) {
-	return top-down-break visit(tree) {
+AST applyInlining(AST tree, rel[AST, list[AST], AST] inlineDefs, map[AST, AST] renaming) {
+	set[AST] usedRenamings = {};
+	set[AST] usedInlines = {};
+	set[AST] foundDecls = {};
+	result = top-down-break visit(tree) {
 		case app: Apply(Fun(funName), seq(args)): {
 			<_, params, body> = overload(funName, inlineDefs, args);
 			if(body != Nop()) {
 				map[AST, AST] subst = ();
-				args = applyInlining(args, inlineDefs, renaming);
+				seq(args) := applyInlining(seq(args), inlineDefs, renaming);
 				for(<Param(paramName, paramType), arg> <- [<params[i], args[i]> | i <- domain(params)])
 					subst[paramName] = arg;
 				body = applyInlining(body, {}, subst);
-				println("<app> =\> <body>");
-				insert body;
+				// println("<app> =\> <body>");
+				usedInlines += {funName};
+				insert preserveAnnos(body, app);
 			}
 			else
 				fail;
 		}
 		case NoDefDecl(_,FunClause(funName,Dummy(seq(args)),_),_): {
 			<n, _, _> = overload(funName, inlineDefs, args);
-			if(n != Nop())
+			if(n != Nop()) {
+				foundDecls += {funName};
 				insert Nop();
+			}
 			else
 				fail;
 		}
 		case DefDecl(_,FunClause(funName,Dummy(seq(args)),_),_,_): {
 			<n, _, _> = overload(funName, inlineDefs, args);
-			if(n != Nop())
+			if(n != Nop()) {
+				foundDecls += {funName};
 				insert Nop();
+			}
+			else
+				fail;
+		}
+		case n: Name(_): {
+			if(n in renaming) {
+				usedRenamings += {n};
+				insert renaming[n];
+			}
 			else
 				fail;
 		}
 	}
+
+	for(n <- inlineDefs<0>) {
+		if(n notin foundDecls)
+			result = addMark(result, "Inlined operation <n> not declared in body\n",
+					"warning", [n@\loc]?[]);
+		if(n notin usedInlines)
+			result = addMark(result, "Inlined operation <n> not used in body\n",
+					"warning", [n@\loc]?[]);
+	}
+
+	for(n <- domain(renaming)) {
+		if(n notin usedRenamings)
+			result = addMark(result, "Renamed name <n> not used in body\n",
+					"warning", [n@\loc]?[]);
+	}
+	
+	return result;
 }
 
 public tuple[AST,list[AST],AST] overload(AST name, rel[AST,list[AST],AST] defs, list[AST] args) {
@@ -292,6 +407,19 @@ public tuple[AST,list[AST],AST] overload(AST name, rel[AST,list[AST],AST] defs, 
 	return result;
 }
 
+public AST addMark(AST tree, str msg) {
+	return addMark(tree, msg, "error", []);
+}
+
+public AST addMark(AST tree, str msg, str severity) {
+	return addMark(tree, msg, severity, []);
+}
+
+public AST addMark(AST tree, str msg, str severity, list[loc] locs) {
+	oldMarks = tree@mark ? {};
+	return tree[@mark = (oldMarks + {Mark(severity, "<severityMsg[severity]>: <msg>", locs)})];
+}
+ 
 public loc findInPath(str name, str project) {
 	searchPath = 
 		[ |project://<project>/Fundamentals/|,
