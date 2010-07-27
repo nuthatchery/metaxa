@@ -55,66 +55,9 @@ public AST lookup(AST n, MagnoliaEnv ctx) {
 	}
 }
 
-
-//public Tree compileMagnolia(loc file) {
-//	Tree parsed = parseMagnolia(file);
-//	//Tree desugared = desugarMagnolia(parsed);
-//
-//	decls = loadTree(parsed, file);
-//	return flattenConcepts(parsed, decls);
-//}
-//public str flattenModule(loc path, str project) {
-//	<tree, ctx> = loadFile(path, project);
-//	return unparse(reindent(flattenConcepts(tree, ctx)));
-//}
 public str flattenModule(AST tree, MagnoliaEnv ctx) {
 	return unparse(reindent(flattenConcepts(tree, ctx)));
 }
-//public void flattenModule(str moduleName, str project) {
-//	path = findInPath("<moduleName>.mg", project);
-//	<tree, ctx> = loadFile(path);
-//	path.path = replaceLast(path.path, "\\.mg", "-flattened.mg");
-//	println("Writing flattened module to <path>");
-//	writeFile(path, unparse(reindent(flattenConcepts(tree, ctx))));
-//}
-
-//public void flattenModuleToCxx(str moduleName, str project) {
-//	path = findInPath("<moduleName>.mg", project);
-//	<tree, ctx> = loadFile(path, project);
-//	path.path = replaceLast(path.path, "\\.mg", ".cc");
-//	println("Writing flattened module to <path>");
-//	writeFile(path, unparse(reindent(cxxFormat(flattenConcepts(tree, ctx)))));
-//}
-
-//public tuple[AST, MagnoliaEnv] loadModule(str moduleName, str project) {
-//	path = findInPath("<moduleName>.mg", project);
-//	println("Loading module <moduleName> from <path>");
-//	return loadFile(path, project);
-//}
-
-//public tuple[AST, MagnoliaEnv] loadFile(loc moduleLoc, str project) {
-//	result = newEnv();
-//	AST tree = parseMagnolia(moduleLoc);
-//	if(cons("MagnoliaTree", [cons("ModuleHead", [NAME, seq(CLAUSES,_)], _), seq(DECLS,_)], _) := tree) {
-//		for(clause <- CLAUSES) {
-//			switch(clause) {
-//				case cons("Imports", [seq(MODULES, _)], _):
-//					for(cons("ImportAll", [m], _) <- MODULES) {
-//						result = joinEnv(result, loadModule(unparse(m), project)[1]);
-//					}
-//			}
-//		}
-//		for(decl <- DECLS) {
-//			// println(decl);
-//			switch(decl) {
-//				case cons("DefDecl", [cons("ConceptClause", [CONCEPT], _), _, cons(_, [seq(CONTENTS,_)], _)], _): {
-//					result.members += {name(unparse(CONCEPT))} * toSet(CONTENTS);
-//				}
-//			}
-//		}
-//	}
-//	return <tree, result>;
-//}
 
 public MagnoliaEnv loadTrees(list[AST] trees) {
 	result = newEnv();
@@ -208,9 +151,9 @@ public AST flattenTopExpr(str kind, AST body, MagnoliaEnv ctx) {
 		case DeclaredFilter(a, f):
 			result =  DeclaredFilter(flattenTopExpr("any", a, ctx), f);
 		case Morphed(expr, morphism):
-			result =  morph(flattenTopExpr(kind, expr, ctx), morphism);
+			result =  morph(flattenTopExpr(kind, expr, ctx), morphism, ctx);
 		case Renamed(a, r):
-			result = morph(flattenTopExpr(kind, a, ctx), r);
+			result = morph(flattenTopExpr(kind, a, ctx), r, ctx);
 		case Protected(expr, protect):
 			result =  Protected(flattenTopExpr(kind, expr, ctx), protect);
 		case OnDefines(a, defs):
@@ -261,8 +204,8 @@ public list[AST] flattenDeclList(list[AST] ds, MagnoliaEnv ctx) {
 					}
 					else if(Decls(DeclBody(seq([]))) := req)
 						result += {Nop()[@mark = (req@mark ? {})]};
-					else if(Name(_) := req) {
-						result += req;
+					else if(Name(_) := req || hasMarkRecursive(req)) {
+						result += Requires(seq([req]));
 					}
 					else {
 						//			println("  no expansion found: <trunc(req)>");
@@ -301,19 +244,24 @@ public AST preserveAnnos(AST tree, AST orig) {
 	}
 	return setAnnotations(tree, treeAnnos);
 }
-public AST morph(AST tree, AST morphism) {
+public AST morph(AST tree, AST morphism, MagnoliaEnv ctx) {
 	if(Decls(_) := tree) {
 		map[AST,AST] renaming = ();
-		rel[AST, list[AST], AST] inlineDefs = {};
-	
+		rel[AST, str, list[AST], AST] inlineDefs = {};
+
+		if(Name(_) := morphism) {
+			morphism = flattenTopExpr("implementation", morphism, ctx);
+			println("Flattened to <trunc(morphism)>");
+		}
 		switch(morphism) {
-			case DefDeclNS(_,FunClause(n,Dummy(seq(as)),t),_,body): {
-				inlineDefs = {<n, as, body>};
+			case DefDeclNS(_,_,_,_): {
+				inlineDefs = getInlineDefs(morphism);
 			}
-			case Decls(DeclBody(seq(ds))): {
-				for(DefDecl(_,FunClause(n,Dummy(seq(as)),t),_,body) <- ds)
-					inlineDefs = {<n, as, body>};
+			case Decls(DeclBody(seq(_))): {
+				inlineDefs = getInlineDefs(morphism);
 			}
+			case Renamed(a, r):
+				return morph(flattenTopExpr("any", a, ctx), r, ctx);
 			case seq([rn*]): {
 				for(Rename(x, y) <- rn) {
 					renaming += (x : y);
@@ -321,7 +269,7 @@ public AST morph(AST tree, AST morphism) {
 			}
 			default: {
 				println("Unknown morphism: <morphism>");
-				return Morphed(tree, addMark(morphism, "Unknown morphism"));
+				return Morphed(tree, addMark(morphism, "Unimplemented morphism type \'<getName(morphism)>\'"));
 			}
 		}
 		return addMarks(applyInlining(tree, inlineDefs, renaming));
@@ -330,15 +278,32 @@ public AST morph(AST tree, AST morphism) {
 		return tree;
 }
 
+public rel[AST, str, list[AST], AST] getInlineDefs(AST decl) {
+	switch(decl) {
+		case DefDeclNS(_,FunClause(n,Dummy(seq(as)),t),_,body): {
+			if(body != Nop())
+				return {<n, "fun", as, body>};
+		}
+		case DefDeclNS(_,TypeClause(n),_,body): {
+			if(body != Nop())
+				return {<n, "type", [], body>};
+		}
+		case Decls(DeclBody(seq(ds))): {
+			return ({} | it + getInlineDefs(d) | d <- decl);
+		}
+	}
+	return {};
+}
+
 data InlineInfo = inlineInfo(
-		rel[AST, list[AST], AST] inlineDefs,
+		rel[AST, str, list[AST], AST] inlineDefs,
 		map[AST, AST] renaming,
 		set[AST] usedRenamings,
 		set[AST] usedInlines,
 		set[AST] foundDecls,
 		set[ErrorMark] marks);
 		
-tuple[AST, set[ErrorMark]] applyInlining(AST tree, rel[AST, list[AST], AST] inlineDefs, map[AST, AST] renaming) {
+tuple[AST, set[ErrorMark]] applyInlining(AST tree, rel[AST, str, list[AST], AST] inlineDefs, map[AST, AST] renaming) {
 	<result, info> = applyInliningInternal(tree, inlineInfo(inlineDefs, renaming, {}, {}, {}, {})); 
 	set[ErrorMark] marks = info.marks;
 	for(n <- info.inlineDefs<0>) {
@@ -362,7 +327,7 @@ tuple[AST, set[ErrorMark]] applyInlining(AST tree, rel[AST, list[AST], AST] inli
 tuple[AST, InlineInfo] applyInliningInternal(AST tree, InlineInfo info) {
 	result = top-down-break visit(tree) {
 		case app: Apply(Fun(funName), seq(args)): {
-			<_, params, body> = overload(funName, info.inlineDefs, args);
+			<_, params, body> = overload(funName, "fun", info.inlineDefs, args);
 			if(body != Nop()) {
 				map[AST, AST] subst = ();
 				<args0, info> = applyInliningInternal(seq(args), info);
@@ -379,8 +344,18 @@ tuple[AST, InlineInfo] applyInliningInternal(AST tree, InlineInfo info) {
 			else
 				fail;
 		}
+		case typ: Type(typeName): {
+			<n, _, body> = overload(typeName, "type", info.inlineDefs, []);
+			if(body != Nop()) {
+				println("<typ> =\> <body>");
+				info.usedInlines += {typeName};
+				insert preserveAnnos(body, typ);
+			}
+			else
+				fail;
+		}
 		case NoDefDecl(_,FunClause(funName,Dummy(seq(args)),_),_): {
-			<n, _, _> = overload(funName, info.inlineDefs, args);
+			<n, _, _> = overload(funName, "fun", info.inlineDefs, args);
 			if(n != Nop()) {
 				info.foundDecls += {funName};
 				insert Nop();
@@ -388,11 +363,29 @@ tuple[AST, InlineInfo] applyInliningInternal(AST tree, InlineInfo info) {
 			else
 				fail;
 		}
-		case DefDecl(_,FunClause(funName,Dummy(seq(args)),_),_,_): {
-			<n, _, _> = overload(funName, info.inlineDefs, args);
+		case ExprDef(_,FunClause(funName,Dummy(seq(args)),_),_,_): {
+			<n, _, _> = overload(funName, "fun", info.inlineDefs, args);
 			if(n != Nop()) {
 				info.foundDecls += {funName};
 				insert Nop();
+			}
+			else
+				fail;
+		}
+		case NoDefDecl(mods,TypeClause(typeName),attrs): {
+			<n, _, _> = overload(typeName, "type", info.inlineDefs, []);
+			if(n != Nop()) {
+				info.foundDecls += {typeName};
+				insert Nop(); 
+			}
+			else
+				fail;
+		}
+		case TypeDef(mods,TypeClause(typeName),attrs,_): {
+			<n, _, _> = overload(typeName, "type", info.inlineDefs, []);
+			if(n != Nop()) {
+				info.foundDecls += {typeName};
+				insert Nop(); 
 			}
 			else
 				fail;
@@ -409,9 +402,9 @@ tuple[AST, InlineInfo] applyInliningInternal(AST tree, InlineInfo info) {
 	return <result, info>;
 }
 
-public tuple[AST,list[AST],AST] overload(AST name, rel[AST,list[AST],AST] defs, list[AST] args) {
+public tuple[AST,list[AST],AST] overload(AST name, str kind, rel[AST,str,list[AST],AST] defs, list[AST] args) {
 	result = <Nop(),[],Nop()>;
-	cands = defs[name];
+	cands = defs[name,kind];
 	if(size(cands) > 0) {
 		done = false;
 		for(<params, body> <- cands, size(params) == size(args)) {
@@ -456,6 +449,19 @@ public AST addMarks(tuple[AST, set[ErrorMark]] treeAndMark) {
 	return treeAndMark[0][@mark = (oldMarks + treeAndMark[1])];
 }
  
+public bool hasMark(AST tree) {
+	return size((tree@mark ? {})) > 0;
+}
+
+public bool hasMarkRecursive(AST tree) {
+	visit(tree) {
+		case AST t:
+			if(size((t@mark ? {})) > 0)
+				return true;
+	}
+	return false;
+}
+
 public loc findInPath(str name, str project) {
 	searchPath = 
 		[ |project://<project>/Fundamentals/|,
