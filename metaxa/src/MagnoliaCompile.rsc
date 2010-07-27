@@ -209,7 +209,7 @@ public list[AST] flattenDeclList(list[AST] ds, MagnoliaEnv ctx) {
 					}
 					else {
 						//			println("  no expansion found: <trunc(req)>");
-						result += {Requires(seq([addMark(req, "Unable to flatten expression", "internal")]))};
+						result += Requires(seq([req])); // {Requires(seq([addMark(req, "Unable to flatten expression", "internal")]))};
 					}
 				}
 			default:
@@ -269,7 +269,7 @@ public AST morph(AST tree, AST morphism, MagnoliaEnv ctx) {
 			}
 			default: {
 				println("Unknown morphism: <morphism>");
-				return Morphed(tree, addMark(morphism, "Unimplemented morphism type \'<getName(morphism)>\'"));
+				return Morphed(tree, morphism); // addMark(morphism, "Unimplemented morphism type \'<getName(morphism)>\'"));
 			}
 		}
 		return addMarks(applyInlining(tree, inlineDefs, renaming));
