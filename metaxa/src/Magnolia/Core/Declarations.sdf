@@ -71,13 +71,21 @@ exports
 	-> BraceDecl
 		{cons("StatDef")}
 
+    Modifier* StatDeclarative SubClause* "=" Stat
+	-> Decl
+		{cons("DefDeclNS")}
+
     Modifier* ExprDeclarative SubClause* "=" Expr ";"
-	-> SemiDecl
-		{cons("ExprDef")}
+	-> Decl
+		{cons("DefDecl")}
 
     Modifier* TypeDeclarative SubClause* "=" Type ";"
 	-> Decl
-		{cons("TypeDef")}
+		{cons("DefDecl")}
+
+    Modifier* DeclDeclarative SubClause* "=" Decl
+	-> Decl
+		{cons("DefDeclNS")}
 
     Modifier* DeclDeclarative SubClause* DeclBody
 	-> BraceDecl
@@ -89,7 +97,7 @@ exports
 
     BraceDecl -> Decl {abstract}
 
-	"external" -> SubClause
+	"external" -> SubClause {cons("External")}
 	
 	"protect" -> Modifier	{cons("ProtectModifier")}
 
@@ -207,9 +215,9 @@ exports
 
    %% "(" {TypeParam ","}* ")"	-> TypeParamList	{cons("Dummy")}
 
-    "(" {FunctionParam ","}* ")"-> FunctionParamList	{cons("Dummy")}
+    "(" {FunctionParam ","}* ")"-> FunctionParamList	{cons("ParamList")}
 
-    "(" {ProcedureParam ","}* ")"-> ProcedureParamList	{cons("Dummy")}
+    "(" {ProcedureParam ","}* ")"-> ProcedureParamList	{cons("ParamList")}
 
    %% Type			-> TypeParam		{cons("TypeExprParam")}
 

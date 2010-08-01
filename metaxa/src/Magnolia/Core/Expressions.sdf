@@ -82,6 +82,10 @@ exports
 
     Name -> FunName
 
+	"\\external" "(" Identifier "," Name ")" -> Fun {cons("ExternalFun")}
+	
+	"\\f" "(" Name ")" -> Fun {cons("FunOf")}
+
 %%% Control-flow expressions
 
     "if" Expr "then" Expr "else" Expr "end" -> Expr {cons("IfThenElseExpr"), selectable}

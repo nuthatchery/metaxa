@@ -72,6 +72,10 @@ exports
 
     "qed" -> AssertClause {cons("QED")}
 
+	"\\external" "(" Identifier "," Name ")" -> Proc {cons("ExternalProc")}
+	
+	"\\p" "(" Name ")" -> Proc {cons("ProcOf")}
+
 lexical restrictions
 
   "if"		-/- [A-Za-z\_\$0-9]

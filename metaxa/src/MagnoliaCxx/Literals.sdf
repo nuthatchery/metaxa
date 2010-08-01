@@ -14,9 +14,11 @@ exports
   context-free syntax
     DecNumeral -> Literal {cons("Int")}
     FloatNumeral -> Literal {cons("Real")}
-    "\"" String "\"" -> StringLiteral {cons("String")}
+    QuotedString -> StringLiteral {cons("String")}
     StringLiteral -> Literal
-
+	IncludeFileNameQuotes -> IncludeFileName {cons("LocalInclude")}
+	IncludeFileNameAngles -> IncludeFileName {cons("SystemInclude")}
+	
   lexical syntax
     [\+\-]? [0-9]+ -> DecNumeral
     [\+\-]? "." [0-9]+ Exponent? -> FloatNumeral
@@ -35,7 +37,11 @@ exports
     "\\u" [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F] -> U16Char
     "\\u" [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F] -> U32Char
     StringPart*	-> String
+    "\"" String "\"" -> QuotedString
 
+	"\"" ~[\"]+ "\"" -> IncludeFileNameQuotes
+	"<" ~[\"]+ ">" -> IncludeFileNameAngles
+	
   lexical restrictions
 
     DecNumeral -/- [0-9]

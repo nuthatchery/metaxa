@@ -12,6 +12,7 @@ data AST = AltType(AST, AST);                                           // Type 
 data AST = ProdType(AST, AST);                                          // ProdType ::= Type "," ProdType
 data AST = Dummy(AST);                                                  // Type ::= "(" ProdType ")"
 data AST = Struct(AST);                                                 // Type ::= "struct" DeclBody
+data AST = ExternalType(AST, AST);                                      // Type ::= "\external" "(" Identifier "," Name ")"
 data AST = Block(AST);                                                  // BlockStat ::= "{" Stat* "}"
 data AST = Nop();                                                       // Stat ::= ";"
 data AST = If(AST, AST, AST);                                           // Stat ::= "if" Expr "then" Stat* "else" Stat* "end"
@@ -31,6 +32,8 @@ data AST = Assert(AST, AST);                                            // Stat 
 data AST = By(AST);                                                     // AssertClause ::= "by" Expr
 data AST = By(AST);                                                     // AssertClause ::= "by" "simplify" Expr
 data AST = QED();                                                       // AssertClause ::= "qed"
+data AST = ExternalProc(AST, AST);                                      // Proc ::= "\external" "(" Identifier "," Name ")"
+data AST = ProcOf(AST);                                                 // Proc ::= "\p" "(" Name ")"
 data AST = Undefined();                                                 // Expr ::= "_"
 data AST = Var(AST, AST);                                               // Var ::= Name ":" Type
 data AST = Literal(AST);                                                // Expr ::= Literal
@@ -41,6 +44,8 @@ data AST = Struct(AST, AST);                                            // Expr 
 data AST = Field(AST, AST);                                             // InitSpec ::= Identifier ":=" Expr
 data AST = Apply(AST, AST);                                             // Expr ::= Fun "(" {Expr ","}* ")"
 data AST = Fun(AST);                                                    // Fun ::= FunName
+data AST = ExternalFun(AST, AST);                                       // Fun ::= "\external" "(" Identifier "," Name ")"
+data AST = FunOf(AST);                                                  // Fun ::= "\f" "(" Name ")"
 data AST = IfThenElseExpr(AST, AST, AST);                               // Expr ::= "if" Expr "then" Expr "else" Expr "end"
 data AST = BlockExpr(AST);                                              // Expr ::= "{" Stat* "}"
 data AST = NumRep(AST, AST);                                            // DataRep ::= DecNumeral ".." DecNumeral ";"
@@ -51,10 +56,13 @@ data AST = TermRep(AST);                                                // DataR
 data AST = TermCons0(AST);                                              // ConsSpec ::= Identifier
 data AST = TermCons(AST, AST);                                          // ConsSpec ::= Identifier "(" {DataRep ","}* ")"
 data AST = StatDef(AST, AST, AST, AST);                                 // BraceDecl ::= Modifier* StatDeclarative SubClause* BlockStat
-data AST = ExprDef(AST, AST, AST, AST);                                 // SemiDecl ::= Modifier* ExprDeclarative SubClause* "=" Expr ";"
-data AST = TypeDef(AST, AST, AST, AST);                                 // Decl ::= Modifier* TypeDeclarative SubClause* "=" Type ";"
+data AST = DefDeclNS(AST, AST, AST, AST);                               // Decl ::= Modifier* StatDeclarative SubClause* "=" Stat
+data AST = DefDecl(AST, AST, AST, AST);                                 // Decl ::= Modifier* ExprDeclarative SubClause* "=" Expr ";"
+data AST = DefDecl(AST, AST, AST, AST);                                 // Decl ::= Modifier* TypeDeclarative SubClause* "=" Type ";"
+data AST = DefDeclNS(AST, AST, AST, AST);                               // Decl ::= Modifier* DeclDeclarative SubClause* "=" Decl
 data AST = DeclDef(AST, AST, AST, AST);                                 // BraceDecl ::= Modifier* DeclDeclarative SubClause* DeclBody
 data AST = DeclBody(AST);                                               // DeclBody ::= "{" Decl* "}"
+data AST = External();                                                  // SubClause ::= "external"
 data AST = ProtectModifier();                                           // Modifier ::= "protect"
 data AST = Attrs(AST);                                                  // AttrClause ::= "[" {Attribute ","}* "]"
 data AST = Attr(AST, AST);                                              // Attribute ::= Name "(" {Expr ","}* ")"
@@ -66,8 +74,8 @@ data AST = PredClause(AST, AST);                                        // PredC
 data AST = AxiomClause(AST, AST);                                       // AxiomClause ::= "axiom" Identifier FunctionParamList
 data AST = AxiomClause(AST, AST);                                       // AxiomClause ::= "theorem" Identifier FunctionParamList
 data AST = AxiomClause(AST, AST);                                       // AxiomClause ::= "proof" Identifier FunctionParamList
-data AST = Dummy(AST);                                                  // FunctionParamList ::= "(" {FunctionParam ","}* ")"
-data AST = Dummy(AST);                                                  // ProcedureParamList ::= "(" {ProcedureParam ","}* ")"
+data AST = ParamList(AST);                                              // FunctionParamList ::= "(" {FunctionParam ","}* ")"
+data AST = ParamList(AST);                                              // ProcedureParamList ::= "(" {ProcedureParam ","}* ")"
 data AST = Param(AST, AST);                                             // FunctionParam ::= VarIdentifier ":" Type
 data AST = Param(AST, AST, AST);                                        // ProcedureParam ::= ParamMode VarIdentifier ":" Type
 data AST = Obs();                                                       // ParamMode ::= "obs"
@@ -223,6 +231,7 @@ switch(name) {
 		case <"ProdType", [arg0, arg1]>: return ProdType(arg0, arg1);
 		case <"Dummy", [arg0]>: return Dummy(arg0);
 		case <"Struct", [arg0]>: return Struct(arg0);
+		case <"ExternalType", [arg0, arg1]>: return ExternalType(arg0, arg1);
 		case <"Block", [arg0]>: return Block(arg0);
 		case <"Nop", []>: return Nop();
 		case <"If", [arg0, arg1, arg2]>: return If(arg0, arg1, arg2);
@@ -242,6 +251,8 @@ switch(name) {
 		case <"By", [arg0]>: return By(arg0);
 		case <"By", [arg0]>: return By(arg0);
 		case <"QED", []>: return QED();
+		case <"ExternalProc", [arg0, arg1]>: return ExternalProc(arg0, arg1);
+		case <"ProcOf", [arg0]>: return ProcOf(arg0);
 		case <"Undefined", []>: return Undefined();
 		case <"Var", [arg0, arg1]>: return Var(arg0, arg1);
 		case <"Literal", [arg0]>: return Literal(arg0);
@@ -252,6 +263,8 @@ switch(name) {
 		case <"Field", [arg0, arg1]>: return Field(arg0, arg1);
 		case <"Apply", [arg0, arg1]>: return Apply(arg0, arg1);
 		case <"Fun", [arg0]>: return Fun(arg0);
+		case <"ExternalFun", [arg0, arg1]>: return ExternalFun(arg0, arg1);
+		case <"FunOf", [arg0]>: return FunOf(arg0);
 		case <"IfThenElseExpr", [arg0, arg1, arg2]>: return IfThenElseExpr(arg0, arg1, arg2);
 		case <"BlockExpr", [arg0]>: return BlockExpr(arg0);
 		case <"NumRep", [arg0, arg1]>: return NumRep(arg0, arg1);
@@ -262,10 +275,13 @@ switch(name) {
 		case <"TermCons0", [arg0]>: return TermCons0(arg0);
 		case <"TermCons", [arg0, arg1]>: return TermCons(arg0, arg1);
 		case <"StatDef", [arg0, arg1, arg2, arg3]>: return StatDef(arg0, arg1, arg2, arg3);
-		case <"ExprDef", [arg0, arg1, arg2, arg3]>: return ExprDef(arg0, arg1, arg2, arg3);
-		case <"TypeDef", [arg0, arg1, arg2, arg3]>: return TypeDef(arg0, arg1, arg2, arg3);
+		case <"DefDeclNS", [arg0, arg1, arg2, arg3]>: return DefDeclNS(arg0, arg1, arg2, arg3);
+		case <"DefDecl", [arg0, arg1, arg2, arg3]>: return DefDecl(arg0, arg1, arg2, arg3);
+		case <"DefDecl", [arg0, arg1, arg2, arg3]>: return DefDecl(arg0, arg1, arg2, arg3);
+		case <"DefDeclNS", [arg0, arg1, arg2, arg3]>: return DefDeclNS(arg0, arg1, arg2, arg3);
 		case <"DeclDef", [arg0, arg1, arg2, arg3]>: return DeclDef(arg0, arg1, arg2, arg3);
 		case <"DeclBody", [arg0]>: return DeclBody(arg0);
+		case <"External", []>: return External();
 		case <"ProtectModifier", []>: return ProtectModifier();
 		case <"Attrs", [arg0]>: return Attrs(arg0);
 		case <"Attr", [arg0, arg1]>: return Attr(arg0, arg1);
@@ -277,8 +293,8 @@ switch(name) {
 		case <"AxiomClause", [arg0, arg1]>: return AxiomClause(arg0, arg1);
 		case <"AxiomClause", [arg0, arg1]>: return AxiomClause(arg0, arg1);
 		case <"AxiomClause", [arg0, arg1]>: return AxiomClause(arg0, arg1);
-		case <"Dummy", [arg0]>: return Dummy(arg0);
-		case <"Dummy", [arg0]>: return Dummy(arg0);
+		case <"ParamList", [arg0]>: return ParamList(arg0);
+		case <"ParamList", [arg0]>: return ParamList(arg0);
 		case <"Param", [arg0, arg1]>: return Param(arg0, arg1);
 		case <"Param", [arg0, arg1, arg2]>: return Param(arg0, arg1, arg2);
 		case <"Obs", []>: return Obs();

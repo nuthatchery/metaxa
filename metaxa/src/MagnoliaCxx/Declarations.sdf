@@ -18,6 +18,8 @@ exports
 
   context-free syntax
 
+	"#" "include" IncludeFileName "\n" -> Decl {cons("Include")}
+		
     Modifier* StatDeclarative SubClause* BlockStat
 	-> BraceDecl
 		{cons("DefDecl")}

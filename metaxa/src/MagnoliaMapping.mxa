@@ -48,9 +48,15 @@ syntax skin
 
 	Decl(: ; :)                                       -> (+ ";" +)
 
+	Decl(: Modifier* DeclDeclarative SubClause* = Decl :) -> (+ Modifier* DeclDeclarative SubClause* "=" Decl +)
+
 	Decl(: Modifier* ExprDeclarative SubClause* ; :)  -> (+ Modifier* ExprDeclarative SubClause* ";" +)
 
+	Decl(: Modifier* ExprDeclarative SubClause* = Expr ; :) -> (+ Modifier* ExprDeclarative SubClause* "=" Expr ";" +)
+
 	Decl(: Modifier* StatDeclarative SubClause* ; :)  -> (+ Modifier* StatDeclarative SubClause* ";" +)
+
+	Decl(: Modifier* StatDeclarative SubClause* = Stat :) -> (+ Modifier* StatDeclarative SubClause* "=" Stat +)
 
 	Decl(: Modifier* TypeDeclarative SubClause* ; :)  -> (+ Modifier* TypeDeclarative SubClause* ";" +)
 
@@ -157,6 +163,10 @@ syntax skin
 	FilterExpr(: retain AlgDeclOrName :)              -> (+ retain AlgDeclOrName +)
 
 	Fun(: FunName :)                                  -> (+ FunName +)
+
+	Fun(: \external ( Identifier , Name ) :)          -> (+ "\external" "(" Identifier "," Name ")" +)
+
+	Fun(: \f ( Name ) :)                              -> (+ "\f" "(" Name ")" +)
 
 	FunClause(: congruence FunctionParamList :)       -> (+ congruence FunctionParamList +)
 
@@ -278,6 +288,10 @@ syntax skin
 
 	Proc(: ProcName :)                                -> (+ ProcName +)
 
+	Proc(: \external ( Identifier , Name ) :)         -> (+ "\external" "(" Identifier "," Name ")" +)
+
+	Proc(: \p ( Name ) :)                             -> (+ "\p" "(" Name ")" +)
+
 	ProcClause(: congruence ProcedureParamList :)     -> (+ congruence ProcedureParamList +)
 
 	ProcClause(: dataInvariant ProcedureParamList :)  -> (+ "dataInvariant" ProcedureParamList +)
@@ -307,8 +321,6 @@ syntax skin
 	SatisfactionExpr(: InstExpr models InstExpr :)    -> (+ InstExpr models InstExpr +)
 
 	SatisfactionExpr(: InstExpr with InstExpr models InstExpr :) -> (+ InstExpr with InstExpr models InstExpr +)
-
-	SemiDecl(: Modifier* ExprDeclarative SubClause* = Expr ; :) -> (+ Modifier* ExprDeclarative SubClause* "=" Expr ";" +)
 
 	SingleAlgDecl(: Modifier* DeclDeclarative SubClause* :) -> (+ Modifier* DeclDeclarative SubClause* +)
 
@@ -378,6 +390,8 @@ syntax skin
 
 	SubClause(: default ( {Identifier ","}* ) :)      -> (+ default "(" {Identifier ","}* ")" +)
 
+	SubClause(: external :)                           -> (+ external +)
+
 	SubClause(: opens ( {Identifier ","}* ) :)        -> (+ opens "(" {Identifier ","}* ")" +)
 
 	TopDecl(: ; :)                                    -> (+ ";" +)
@@ -399,6 +413,8 @@ syntax skin
 	Type(: Name :)                                    -> (+ Name +)
 
 	Type(: Type | Type :)                             -> (+ Type "|" Type +)
+
+	Type(: \external ( Identifier , Name ) :)         -> (+ "\external" "(" Identifier "," Name ")" +)
 
 	Type(: struct DeclBody :)                         -> (+ struct DeclBody +)
 
