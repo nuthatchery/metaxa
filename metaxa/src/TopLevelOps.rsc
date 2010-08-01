@@ -18,10 +18,14 @@ public AST applyImpl(AST lhs, AST rhs, AST orig) {
 				marks = addMark(marks, "Unsatisfied dependency <nameOf(d)> (from <locInfo(locOf(d), locOf(orig))>) in composition", orig);
 			
 		}
+		
+		// inline the lhs defs that appear in the on-clause of rhs
+		<rhsInlined, errs> = inline(rhs, sigIsect(definesOf(lhs), onOf(rhs)));
+		marks += errs;
 		//if(size(unDefs) > 0)
 		//	return addMarks(marks, orig);
 	
-		defPart = decls(sigUnion(definesOf(rhs), definesOf(lhs)));
+		defPart = decls(sigUnion(definesOf(rhsInlined), definesOf(lhs)));
 		
 		AST result;
 		switch(lhs) {
