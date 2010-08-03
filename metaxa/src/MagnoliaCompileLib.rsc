@@ -147,17 +147,7 @@ public str locInfo(loc location, loc base) {
 
 public str nameOf(AST tree) {
 	switch(tree) {
-		case DefDeclNS(_,d,_,_):
-			return nameOf(d);
-		case NoDefDeclNS(_,d,_):
-			return nameOf(d);
-		case StatDef(_, d, _, _):
-			return nameOf(d);
-		case DeclDef(_, d, _, _):
-			return nameOf(d);
-		case DefDecl(_, d, _, _):
-			return nameOf(d);
-		case NoDefDecl(_, d, _):
+		case Define(_,d,_,_):
 			return nameOf(d);
 		case TypeClause(n):
 			return nameOf(n);
@@ -206,23 +196,19 @@ public tuple[&T, set[ErrorMark]] inline(&T tree, set[AST] decls) {
 }
 public rel[AST, str, list[AST], AST] getInlineDefs(AST decl) {
 	switch(decl) {
-		case DefDeclNS(_,FunClause(n,ParamList(seq(as)),t),_,body): {
-			if(body != Nop())
-				return {<n, "fun", as, body>};
+		case Define(_,dcl,_,body0): {
+			if(BodyS(body) := body0 || BodyNS(body) := body0 || body:Block(_) := body0) {
+				switch(dcl) {
+					case FunClause(n,ParamList(seq(as)),t):
+						return {<n, "fun", as, body>};
+					case ProcClause(n,ParamList(seq(as)),t):
+						return {<n, "proc", as, body>};
+					case TypeClause(n):
+						return {<n, "type", [], body>};
+				}
+			}
 		}
-		case DefDeclNS(_,TypeClause(n),_,body): {
-			if(body != Nop())
-				return {<n, "type", [], body>};
-		}
-		case DefDecl(_,FunClause(n,ParamList(seq(as)),t),_,body): {
-			if(body != Nop())
-				return {<n, "fun", as, body>};
-		}
-		case DefDecl(_,TypeClause(n),_,body): {
-			if(body != Nop())
-				return {<n, "type", [], body>};
-		}
-		case Decls(DeclBody(seq(ds))): {
+		case DeclBody(seq(ds)): {
 			return ({} | it + getInlineDefs(d) | d <- decl);
 		}
 	}
@@ -237,7 +223,7 @@ data InlineInfo = inlineInfo(
 		set[AST] foundDecls,
 		set[ErrorMark] marks);
 		
-tuple[&T, set[ErrorMark]] applyInlining(&T tree, rel[AST, str, list[AST], AST] inlineDefs, map[AST, AST] renaming) {
+public tuple[&T, set[ErrorMark]] applyInlining(&T tree, rel[AST, str, list[AST], AST] inlineDefs, map[AST, AST] renaming) {
 	<result, info> = applyInliningInternal(tree, inlineInfo(inlineDefs, renaming, {}, {}, {}, {})); 
 	set[ErrorMark] marks = info.marks;
 	for(n <- info.inlineDefs<0>) {
@@ -289,7 +275,7 @@ tuple[&T, InlineInfo] applyInliningInternal(&T tree, InlineInfo info) {
 			else
 				fail;
 		}
-		case NoDefDecl(_,FunClause(funName,ParamList(seq(args)),_),_): {
+		case Define(_,FunClause(funName,ParamList(seq(args)),_),_,_): {
 			<n, _, _> = overload(funName, "fun", info.inlineDefs, args);
 			if(n != Nop()) {
 				info.foundDecls += {funName};
@@ -298,26 +284,8 @@ tuple[&T, InlineInfo] applyInliningInternal(&T tree, InlineInfo info) {
 			else
 				fail;
 		}
-		case ExprDef(_,FunClause(funName,ParamList(seq(args)),_),_,_): {
-			<n, _, _> = overload(funName, "fun", info.inlineDefs, args);
-			if(n != Nop()) {
-				info.foundDecls += {funName};
-				insert Nop();
-			}
-			else
-				fail;
-		}
-		case NoDefDecl(mods,TypeClause(typeName),attrs): {
-			<n, _, _> = overload(typeName, "type", info.inlineDefs, []);
-			if(n != Nop()) {
-				info.foundDecls += {typeName};
-				insert Nop(); 
-			}
-			else
-				fail;
-		}
-		case TypeDef(mods,TypeClause(typeName),attrs,_): {
-			<n, _, _> = overload(typeName, "type", info.inlineDefs, []);
+		case Define(_,TypeClause(typeName),_,_): {
+					<n, _, _> = overload(typeName, "type", info.inlineDefs, []);
 			if(n != Nop()) {
 				info.foundDecls += {typeName};
 				insert Nop(); 

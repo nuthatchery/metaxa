@@ -2,8 +2,6 @@ language module Magnolia
 
 syntax skin
 
-	AlgDecl(: DeclBody :)                             -> (+ DeclBody +)
-
 	AssertClause(: by Expr :)                         -> (+ by Expr +)
 
 	AssertClause(: by simplify Expr :)                -> (+ by simplify Expr +)
@@ -23,10 +21,6 @@ syntax skin
 	AxiomClause(: theorem Identifier FunctionParamList :) -> (+ theorem Identifier FunctionParamList +)
 
 	BlockStat(: { Stat* } :)                          -> (+ "{" Stat* "}" +)
-
-	BraceDecl(: Modifier* DeclDeclarative SubClause* DeclBody :) -> (+ Modifier* DeclDeclarative SubClause* DeclBody +)
-
-	BraceDecl(: Modifier* StatDeclarative SubClause* BlockStat :) -> (+ Modifier* StatDeclarative SubClause* BlockStat +)
 
 	CompileClause(: ID ( {QuotedString ","}* ) ; :)   -> (+ ID "(" {QuotedString ","}* ")" ";" +)
 
@@ -48,19 +42,11 @@ syntax skin
 
 	Decl(: ; :)                                       -> (+ ";" +)
 
-	Decl(: Modifier* DeclDeclarative SubClause* = Decl :) -> (+ Modifier* DeclDeclarative SubClause* "=" Decl +)
+	Decl(: Modifier* ExprDeclarative SubClause* ExprDefBodyS :) -> (+ Modifier* ExprDeclarative SubClause* ExprDefBodyS +)
 
-	Decl(: Modifier* ExprDeclarative SubClause* ; :)  -> (+ Modifier* ExprDeclarative SubClause* ";" +)
+	Decl(: Modifier* StatDeclarative SubClause* StatDefBodyS :) -> (+ Modifier* StatDeclarative SubClause* StatDefBodyS +)
 
-	Decl(: Modifier* ExprDeclarative SubClause* = Expr ; :) -> (+ Modifier* ExprDeclarative SubClause* "=" Expr ";" +)
-
-	Decl(: Modifier* StatDeclarative SubClause* ; :)  -> (+ Modifier* StatDeclarative SubClause* ";" +)
-
-	Decl(: Modifier* StatDeclarative SubClause* = Stat :) -> (+ Modifier* StatDeclarative SubClause* "=" Stat +)
-
-	Decl(: Modifier* TypeDeclarative SubClause* ; :)  -> (+ Modifier* TypeDeclarative SubClause* ";" +)
-
-	Decl(: Modifier* TypeDeclarative SubClause* = Type ; :) -> (+ Modifier* TypeDeclarative SubClause* "=" Type ";" +)
+	Decl(: Modifier* TypeDeclarative SubClause* TypeDefBodyS :) -> (+ Modifier* TypeDeclarative SubClause* TypeDefBodyS +)
 
 	Decl(: Modifier* implementation Identifier SubClause* ImplExpr :) -> (+ Modifier* implementation Identifier SubClause* ImplExpr +)
 
@@ -70,17 +56,11 @@ syntax skin
 
 	Decl(: free {Type ","}+ by InstExpr ; :)          -> (+ free {Type ","}+ by InstExpr ";" +)
 
-	Decl(: free {Type ","}+ by {SingleAlgDecl ","}+ ; :) -> (+ free {Type ","}+ by {SingleAlgDecl ","}+ ";" +)
-
 	Decl(: generate {Type ","}+ by InstExpr ; :)      -> (+ generate {Type ","}+ by InstExpr ";" +)
-
-	Decl(: generate {Type ","}+ by {SingleAlgDecl ","}+ ; :) -> (+ generate {Type ","}+ by {SingleAlgDecl ","}+ ";" +)
 
 	Decl(: homomorphism InstExpr on InstExpr with InstExpr ; :) -> (+ homomorphism InstExpr on InstExpr with InstExpr ";" +)
 
 	Decl(: partition {Type ","}+ by InstExpr ; :)     -> (+ partition {Type ","}+ by InstExpr ";" +)
-
-	Decl(: partition {Type ","}+ by {SingleAlgDecl ","}+ ; :) -> (+ partition {Type ","}+ by {SingleAlgDecl ","}+ ";" +)
 
 	Decl(: preserve InstExpr ; :)                     -> (+ preserve InstExpr ";" +)
 
@@ -89,6 +69,12 @@ syntax skin
 	Decl(: requires {InstExpr ","}+ ; :)              -> (+ requires {InstExpr ","}+ ";" +)
 
 	DeclBody(: { Decl* } :)                           -> (+ "{" Decl* "}" +)
+
+	DeclNS(: Modifier* ExprDeclarative SubClause* ExprDefBodyNS :) -> (+ Modifier* ExprDeclarative SubClause* ExprDefBodyNS +)
+
+	DeclNS(: Modifier* StatDeclarative SubClause* StatDefBodyNS :) -> (+ Modifier* StatDeclarative SubClause* StatDefBodyNS +)
+
+	DeclNS(: Modifier* TypeDeclarative SubClause* TypeDefBodyNS :) -> (+ Modifier* TypeDeclarative SubClause* TypeDefBodyNS +)
 
 	Expr(: ( {Expr ","}* ) :)                         -> (+ "(" {Expr ","}* ")" +)
 
@@ -152,6 +138,14 @@ syntax skin
 
 	Expr(: { Stat* } :)                               -> (+ "{" Stat* "}" +)
 
+	ExprDefBodyNS(:  :)                               -> (+  +)
+
+	ExprDefBodyNS(: = Expr :)                         -> (+ "=" Expr +)
+
+	ExprDefBodyS(: ; :)                               -> (+ ";" +)
+
+	ExprDefBodyS(: = Expr ; :)                        -> (+ "=" Expr ";" +)
+
 	ExternalExpr(: Identifier Name defines InstExpr :) -> (+ Identifier Name defines InstExpr +)
 
 	ExternalExpr(: Identifier Name extends InstExpr on InstExpr defines InstExpr :) -> (+ Identifier Name extends InstExpr on InstExpr defines InstExpr +)
@@ -171,8 +165,6 @@ syntax skin
 	FunClause(: congruence FunctionParamList :)       -> (+ congruence FunctionParamList +)
 
 	FunClause(: dataInvariant FunctionParamList :)    -> (+ "dataInvariant" FunctionParamList +)
-
-	FunClause(: define FunName : Type :)              -> (+ define FunName ":" Type +)
 
 	FunClause(: function FunIdentifier FunctionParamList : Type :) -> (+ function FunIdentifier FunctionParamList ":" Type +)
 
@@ -322,22 +314,6 @@ syntax skin
 
 	SatisfactionExpr(: InstExpr with InstExpr models InstExpr :) -> (+ InstExpr with InstExpr models InstExpr +)
 
-	SingleAlgDecl(: Modifier* DeclDeclarative SubClause* :) -> (+ Modifier* DeclDeclarative SubClause* +)
-
-	SingleAlgDecl(: Modifier* DeclDeclarative SubClause* = DeclBody :) -> (+ Modifier* DeclDeclarative SubClause* "=" DeclBody +)
-
-	SingleAlgDecl(: Modifier* ExprDeclarative SubClause* :) -> (+ Modifier* ExprDeclarative SubClause* +)
-
-	SingleAlgDecl(: Modifier* ExprDeclarative SubClause* = Expr :) -> (+ Modifier* ExprDeclarative SubClause* "=" Expr +)
-
-	SingleAlgDecl(: Modifier* StatDeclarative SubClause* :) -> (+ Modifier* StatDeclarative SubClause* +)
-
-	SingleAlgDecl(: Modifier* StatDeclarative SubClause* = BlockStat :) -> (+ Modifier* StatDeclarative SubClause* "=" BlockStat +)
-
-	SingleAlgDecl(: Modifier* TypeDeclarative SubClause* :) -> (+ Modifier* TypeDeclarative SubClause* +)
-
-	SingleAlgDecl(: Modifier* TypeDeclarative SubClause* = Type :) -> (+ Modifier* TypeDeclarative SubClause* "=" Type +)
-
 	Stat(: ; :)                                       -> (+ ";" +)
 
 	Stat(: Expr . Identifier = Expr ; :)              -> (+ Expr "." Identifier "=" Expr ";" +)
@@ -388,6 +364,14 @@ syntax skin
 
 	Stat(: yield Expr ; :)                            -> (+ yield Expr ";" +)
 
+	StatDefBodyNS(:  :)                               -> (+  +)
+
+	StatDefBodyNS(: = Stat :)                         -> (+ "=" Stat +)
+
+	StatDefBodyS(: ; :)                               -> (+ ";" +)
+
+	StatDefBodyS(: = Stat ; :)                        -> (+ "=" Stat ";" +)
+
 	SubClause(: default ( {Identifier ","}* ) :)      -> (+ default "(" {Identifier ","}* ")" +)
 
 	SubClause(: external :)                           -> (+ external +)
@@ -419,6 +403,14 @@ syntax skin
 	Type(: struct DeclBody :)                         -> (+ struct DeclBody +)
 
 	TypeClause(: type TypeIdentifier :)               -> (+ type TypeIdentifier +)
+
+	TypeDefBodyNS(:  :)                               -> (+  +)
+
+	TypeDefBodyNS(: = Type :)                         -> (+ "=" Type +)
+
+	TypeDefBodyS(: ; :)                               -> (+ ";" +)
+
+	TypeDefBodyS(: = Type ; :)                        -> (+ "=" Type ";" +)
 
 	Var(: Name : Type :)                              -> (+ Name ":" Type +)
 

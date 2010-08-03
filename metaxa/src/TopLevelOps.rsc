@@ -52,27 +52,17 @@ public AST applyImpl(AST lhs, AST rhs, AST orig) {
 
 
 public AST makeExternal(AST language, AST name, AST tree) {
-	if(Decls(DeclBody(seq(ds))) := tree) {
+	if(DeclBody(seq(ds)) := tree) {
 		for(i <- domain(ds)) {
 			switch(ds[i]) {
-				case DefDecl(mods,def,attrs,body):
-					ds[i] = makeExternal(language, name, mods,def,attrs);
-				case DefDeclNS(mods,def,attrs,body):
-					ds[i] = makeExternal(language, name, mods,def,attrs);
-				case NoDefDecl(mods,def,attrs):
-					ds[i] = makeExternal(language, name, mods,def,attrs);
-				case NoDefDeclNS(mods,def,attrs):
-					ds[i] = makeExternal(language, name, mods,def,attrs);
-				case StatDef(mods,def,attrs,body):
-					ds[i] = makeExternal(language, name, mods,def,attrs);
-				case DeclDef(mods,def,attrs,body):
+				case Define(mods,def,attrs,body):
 					ds[i] = makeExternal(language, name, mods,def,attrs);
 				default:
 					throw InternalError("Unknown declaration <getName(ds[i])>", ds[i]);
 			}
 			println(ds[i]);
 		}
-		return Decls(DeclBody(seq(ds)));
+		return DeclBody(seq(ds));
 	}
 	else
 		throw InternalError("Top-level expression not fully flattened: <getName(tree)>", tree);
@@ -84,11 +74,11 @@ private AST makeExternal(AST language, AST name, AST mods, AST def, AST attrs) {
 		attrs = seq([a | a <- as, a != External()]);
 	switch(def) {
 		case TypeClause(n):
-			return DefDecl(mods, def, attrs, ExternalType(language, qualify(name, n)));
+			return Define(mods, def, attrs, BodyS(ExternalType(language, qualify(name, n))));
 		case FunClause(n,ps,t):
-			return DefDecl(mods, def, attrs, Apply(ExternalFun(language, qualify(name, n)), seq(paramsToArgs(ps))));
+			return Define(mods, def, attrs, BodyS(Apply(ExternalFun(language, qualify(name, n)), seq(paramsToArgs(ps)))));
 		case ProcClause(n,ps):
-			return DefDecl(mods, def, attrs, Call(ExternalProc(language, qualify(name, n)), seq(paramsToArgs(ps))));
+			return Define(mods, def, attrs, BodyS(Call(ExternalProc(language, qualify(name, n)), seq(paramsToArgs(ps)))));
 		default:
 			throw InternalError("Unknown declaration clause <getName(def)>", def);
 	}
@@ -101,11 +91,11 @@ public set[AST] definesOf(AST expr) {
 			result = defPart;
 		case External(ExternalExtendsOnDefines(_,_,_,_,defPart)): 
 			result = defPart;
-		case Decls(DeclBody(seq(ds))): 
+		case DeclBody(seq(ds)): 
 			result = defPart;
 	}
 	
-	if(Decls(DeclBody(seq(ds))) := result)
+	if(DeclBody(seq(ds)) := result)
 		return toSet(ds);
 	else if(Nop() := result)
 		throw InternalError("Don\'t know how to get defines-part from <getName(expr)>", expr);
@@ -122,7 +112,7 @@ public set[AST] onOf(AST expr) {
 			result = onPart;
 	}
 
-	if(Decls(DeclBody(seq(ds))) := result)
+	if(DeclBody(seq(ds)) := result)
 		return toSet(ds);
 	else if(Nop() := result)
 		throw InternalError("Don\'t know how to get on-part from <getName(expr)>", expr);
@@ -137,19 +127,9 @@ public set[AST] fullOf(AST expr) {
 public set[AST] signatureOf(AST expr) {
 	result = expr;
 	switch(expr) {
-		case DefDeclNS(mod,dcl,sub,_):
-			result = {NoDefDecl(mod, dcl, sub)};
-		case NoDefDeclNS(_,_,_):
-			;
-		case DefDecl(mod, dcl, sub, _):
-			result = {NoDefDecl(mod, dcl, sub)};
-		case StatDef(mod, dcl, sub, _):
-			result = {NoDefDecl(mod, dcl, sub)};
-		case DeclDef(mod, dcl, sub, _):
-			result = {NoDefDecl(mod, dcl, sub)};
-		case NoDefDecl(mod, dcl, sub):
-			;
-		case Decls(DeclBody(seq(ds))):
+		case Define(mod,dcl,sub,_):
+			result = {Define(mod, dcl, sub, EmptyBodyS())};
+		case DeclBody(seq(ds)):
 			result = ({} | it + signatureOf(d) | d <- ds);
 		default:
 			throw InternalError("Don\'t know how to extract signature from <getName(expr)>", expr);
@@ -161,18 +141,8 @@ public set[AST] signatureOf(AST expr) {
 public AST canonical(AST decl) {
 	result = decl;
 	switch(decl) {
-		case DefDeclNS(_,dcl,_,_):
-			result = NoDefDecl(Nop(), dcl, Nop());
-		case NoDefDeclNS(_,dcl,_):
-			result = NoDefDecl(Nop(), dcl, Nop());
-		case StatDef(_, dcl, _, _):
-			result = NoDefDecl(Nop(), dcl, Nop());
-		case DefDecl(_, dcl, _, _):
-			result = NoDefDecl(Nop(), dcl, Nop());
-		case DeclDef(_, dcl, _, _):
-			result = NoDefDecl(Nop(), dcl, Nop());
-		case NoDefDecl(_, dcl, _):
-			result = NoDefDecl(Nop(), dcl, Nop());
+		case Define(_,dcl,_,_):
+			result = Define(Nop(), dcl, Nop(), EmptyBodyS());
 		default:
 			throw InternalError("Don\'t know how to canonicalize <getName(decl)>", decl);
 	}
@@ -243,6 +213,6 @@ public set[AST] sigIsect(set[AST] lhs, set[AST] rhs) {
 }
 
 public AST decls(set[AST] ds) {
-	return Decls(DeclBody(seq(toList(ds))));
+	return DeclBody(seq(toList(ds)));
 }
 

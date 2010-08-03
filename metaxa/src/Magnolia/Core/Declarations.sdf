@@ -58,8 +58,8 @@ exports
   sorts
 	Decl		SubClause
 	StatDeclarative ExprDeclarative
-	TypeDeclarative	%% DeclDeclarative 
-
+	TypeDeclarative	
+	
   %% Externals
 	BlockStat	Expr
 	Type		DataRep
@@ -67,35 +67,49 @@ exports
 
   context-free syntax
 
-    Modifier* StatDeclarative SubClause* BlockStat
-	-> BraceDecl
-		{cons("StatDef")}
-
-    Modifier* StatDeclarative SubClause* "=" Stat
+    Modifier* StatDeclarative SubClause* StatDefBodyS
 	-> Decl
-		{cons("DefDeclNS")}
+		{cons("Define")}
 
-    Modifier* ExprDeclarative SubClause* "=" Expr ";"
+    Modifier* StatDeclarative SubClause* StatDefBodyNS
+	-> DeclNS
+		{cons("Define")}
+
+    Modifier* ExprDeclarative SubClause* ExprDefBodyS
 	-> Decl
-		{cons("DefDecl")}
+		{cons("Define")}
 
-    Modifier* TypeDeclarative SubClause* "=" Type ";"
+    Modifier* ExprDeclarative SubClause* ExprDefBodyNS
+	-> DeclNS
+		{cons("Define")}
+
+    Modifier* TypeDeclarative SubClause* TypeDefBodyS
 	-> Decl
-		{cons("DefDecl")}
+		{cons("Define")}
 
-    Modifier* DeclDeclarative SubClause* "=" Decl
-	-> Decl
-		{cons("DefDeclNS")}
+    Modifier* TypeDeclarative SubClause* TypeDefBodyNS
+	-> DeclNS
+		{cons("Define")}
 
-    Modifier* DeclDeclarative SubClause* DeclBody
-	-> BraceDecl
-		{cons("DeclDef")}
 
-    "{" Decl* "}" -> DeclBody {cons("DeclBody"), dummy}
+	"=" Stat ";"	-> StatDefBodyS		{cons("BodyS")}
+	BlockStat		-> StatDefBodyS
+	";"				-> StatDefBodyS		{cons("EmptyBodyS")}
+	"=" Stat		-> StatDefBodyNS	{cons("BodyNS")}
+	BlockStat		-> StatDefBodyNS
+					-> StatDefBodyNS	{cons("EmptyBodyNS")}
+				
+	"=" Expr ";"	-> ExprDefBodyS		{cons("BodyS")}
+	";"				-> ExprDefBodyS		{cons("EmptyBodyS")}
+	"=" Expr		-> ExprDefBodyNS	{cons("BodyNS")}
+					-> ExprDefBodyNS	{cons("EmptyBodyNS")}
 
-    SemiDecl -> Decl {abstract}
+	"=" Type ";"	-> TypeDefBodyS		{cons("BodyS")}
+	";"				-> TypeDefBodyS		{cons("EmptyBodyS")}
+	"=" Type		-> TypeDefBodyNS	{cons("BodyNS")}
+					-> TypeDefBodyNS	{cons("EmptyBodyNS")}
 
-    BraceDecl -> Decl {abstract}
+    "{" Decl* "}" -> DeclBody {cons("DeclBody")}
 
 	"external" -> SubClause {cons("External")}
 	

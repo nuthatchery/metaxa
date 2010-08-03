@@ -120,12 +120,10 @@ public AST flattenConcepts(AST tree, MagnoliaEnv env) {
 public AST flattenTopExpr(str kind, AST body, MagnoliaEnv ctx) {
 	result = body;
 	switch(body) {
-		case Decls(DeclBody(seq(ds))):
-			result =  Decls(DeclBody(seq(flattenDeclList(ds, ctx))));
-		case DefDeclNS(_, _, _, _):
-			result = Decls(DeclBody(seq(flattenDeclList([body], ctx))));
-		case NoDefDeclNS(_, _, _):
-			result = Decls(DeclBody(seq(flattenDeclList([body], ctx))));
+		case DeclBody(seq(ds)):
+			result =  DeclBody(seq(flattenDeclList(ds, ctx)));
+		case Define(_, _, _, _):
+			result = DeclBody(seq(flattenDeclList([body], ctx)));
 		case n: Name(_):
 			result =  flattenTopExpr(kind, lookup(n, ctx), ctx) ? addMark(body, "Top-level name <n> not defined");
 		case n: QName(_,_):
@@ -196,17 +194,17 @@ public list[AST] flattenDeclList(list[AST] ds, MagnoliaEnv ctx) {
 			case Requires(seq(reqs)):
 				for(req <- reqs) {
 					req = flattenTopExpr("concept", req, ctx);
-					if(Decls(DeclBody(seq([d1, ds1*]))) := req) {
+					if(DeclBody(seq([d1, ds1*])) := req) {
 						result += {d1[@mark = ((d1@mark ? {}) + (req@mark ? {}))]};
 						result += toSet(ds1);
 					}
-					else if(Decls(DeclBody(seq([]))) := req)
+					else if(DeclBody(seq([])) := req)
 						result += {Nop()[@mark = (req@mark ? {})]};
 					else if(Name(_) := req || QName(_,_) := req || hasMarkRecursive(req)) {
 						result += Requires(seq([req]));
 					}
 					else {
-						//			println("  no expansion found: <trunc(req)>");
+								println("  no expansion found: <trunc(req)>");
 						result += Requires(seq([req])); // {Requires(seq([addMark(req, "Unable to flatten expression", "internal")]))};
 					}
 				}
@@ -220,7 +218,7 @@ public list[AST] flattenDeclList(list[AST] ds, MagnoliaEnv ctx) {
 
 
 public AST morph(AST tree, AST morphism, MagnoliaEnv ctx) {
-	if(Decls(_) := tree) {
+	if(DeclBody(_) := tree) {
 		map[AST,AST] renaming = ();
 		rel[AST, str, list[AST], AST] inlineDefs = {};
 
@@ -229,10 +227,10 @@ public AST morph(AST tree, AST morphism, MagnoliaEnv ctx) {
 			println("Flattened to <trunc(morphism)>");
 		}
 		switch(morphism) {
-			case DefDeclNS(_,_,_,_): {
+			case Define(_,_,_,_): {
 				inlineDefs = getInlineDefs(morphism);
 			}
-			case Decls(DeclBody(seq(_))): {
+			case DeclBody(seq(_)): {
 				inlineDefs = getInlineDefs(morphism);
 			}
 			case Renamed(a, r):
@@ -254,7 +252,7 @@ public AST morph(AST tree, AST morphism, MagnoliaEnv ctx) {
 }
 
 public AST external(str kind, AST expr, MagnoliaEnv ctx) {
-	empty = Decls(DeclBody(seq([])));
+	empty = DeclBody(seq([]));
 	AST result;
 	switch(expr) {
 		case ExternalDefines(language, name, defPart):
