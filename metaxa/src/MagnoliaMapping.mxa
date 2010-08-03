@@ -244,7 +244,11 @@ syntax skin
 
 	Modifier(: default :)                             -> (+ default +)
 
+	Modifier(: extend :)                              -> (+ extend +)
+
 	Modifier(: protect :)                             -> (+ protect +)
+
+	Modifier(: require :)                             -> (+ require +)
 
 	ModuleClause(: compile " String " { CompileClause* } :) -> (+ compile """ String """ "{" CompileClause* "}" +)
 

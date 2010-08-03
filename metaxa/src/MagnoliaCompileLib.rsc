@@ -94,6 +94,10 @@ public AST addMarks(set[ErrorMark] marks, AST tree) {
 	oldMarks = tree@mark ? {};
 	return tree[@mark = (oldMarks + marks)];
 }
+
+public set[ErrorMark] getMarks(AST tree) {
+	return tree@mark ? {};
+}
  
 public bool hasMark(AST tree) {
 	return size((tree@mark ? {})) > 0;
@@ -334,4 +338,32 @@ public tuple[AST,list[AST],AST] overload(AST name, str kind, rel[AST,str,list[AS
 		}
 	}
 	return result;
+}
+
+public AST setModifier(AST decl, AST modifier) {
+	if(Define(mods,def,attrs,body) := decl)
+		return preserveAnnos(Define(seq([modifier]),def,attrs,body), decl);
+	else if(Nop() := decl)
+		return false;
+	else
+		throw InternalError("setModifier: not a definition: <getName(decl)>", decl);
+}
+
+public bool hasModifier(AST decl, AST modifier) {
+	if(Define(seq(mods),def,attrs,body) := decl)
+		return modifier in mods;
+	else if(Nop() := decl)
+		return false;
+	else
+		throw InternalError("hasModifier: not a definition: <getName(decl)>", decl);
+}
+
+@doc{True if expr has one or more of the modifiers.}
+public bool hasModifier(AST decl, set[AST] modifiers) {
+	if(Define(seq(mods),def,attrs,body) := decl)
+		return size(toSet(mods) & modifiers) > 0 ;
+	else if(Nop() := decl)
+		return false;
+	else
+		throw InternalError("hasModifier: not a definition: <getName(decl)>", decl);
 }

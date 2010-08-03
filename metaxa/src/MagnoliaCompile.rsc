@@ -153,7 +153,9 @@ public AST flattenTopExpr(str kind, AST body, MagnoliaEnv ctx) {
 		case Protected(expr, protect):
 			result =  Protected(flattenTopExpr(kind, expr, ctx), protect);
 		case OnDefines(a, defs):
-			result =  OnDefines(flattenTopExpr(kind, a, ctx), defs);
+			result =  preserveAnnos(decls(sigUnion(fullOf(defs),
+				 {setModifier(d, Require()) | d <- fullOf(flattenTopExpr(kind, a, ctx))})),
+				 body);
 		case Defines(defs):
 			;
 		case External(ext):
@@ -256,20 +258,18 @@ public AST external(str kind, AST expr, MagnoliaEnv ctx) {
 	AST result;
 	switch(expr) {
 		case ExternalDefines(language, name, defPart):
-			result = External(ExternalExtendsOnDefines(language, name, 
-						empty, empty,
-						makeExternal(language, name, flattenTopExpr(kind, defPart, ctx))));
+			result = makeExternal(language, name, flattenTopExpr(kind, defPart, ctx));
 		case ExternalOnDefines(language, name, onPart, defPart):
-			result = External(ExternalExtendsOnDefines(language, name, 
-						empty,
-						flattenTopExpr(kind, onPart, ctx),
-						makeExternal(language, name, flattenTopExpr(kind, defPart, ctx))));
+			result = decls(sigUnion(
+				fullOf(makeExternal(language, name, flattenTopExpr(kind, defPart, ctx))),
+				{setModifier(d, Require()) | d <- fullOf(flattenTopExpr(kind, onPart, ctx))}));
 		case ExternalExtendsOnDefines(language,name,
 							extends,onPart, makeExternal(language, name, defPart)):
-			result = External(ExternalExtendsOnDefines(language, name, 
-						flattenTopExpr(kind, extends, ctx),
-						flattenTopExpr(kind, onPart, ctx),
-						makeExternal(language, name, flattenTopExpr(kind, defPart, ctx))));
+			result = decls(sigUnion(sigUnion(
+				fullOf(makeExternal(language, name, flattenTopExpr(kind, defPart, ctx))),
+				{setModifier(d, Require()) | d <- fullOf(flattenTopExpr(kind, onPart, ctx))}),
+				{setModifier(d, Extend()) | d <- fullOf(flattenTopExpr(kind, extends, ctx))}));
+			 
 		default:
 			throw InternalError("Unknown external expression <getName(expr)>", expr);
 		}

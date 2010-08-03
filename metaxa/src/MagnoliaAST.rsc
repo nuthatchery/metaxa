@@ -75,7 +75,9 @@ data AST = BodyNS(AST);                                                 // TypeD
 data AST = EmptyBodyNS();                                               // TypeDefBodyNS ::= 
 data AST = DeclBody(AST);                                               // DeclBody ::= "{" Decl* "}"
 data AST = External();                                                  // SubClause ::= "external"
-data AST = ProtectModifier();                                           // Modifier ::= "protect"
+data AST = Protect();                                                   // Modifier ::= "protect"
+data AST = Require();                                                   // Modifier ::= "require"
+data AST = Extend();                                                    // Modifier ::= "extend"
 data AST = Attrs(AST);                                                  // AttrClause ::= "[" {Attribute ","}* "]"
 data AST = Attr(AST, AST);                                              // Attribute ::= Name "(" {Expr ","}* ")"
 data AST = ProcClause(AST, AST);                                        // ProcClause ::= "procedure" ProcIdentifier ProcedureParamList
@@ -290,7 +292,9 @@ switch(name) {
 		case <"EmptyBodyNS", []>: return EmptyBodyNS();
 		case <"DeclBody", [arg0]>: return DeclBody(arg0);
 		case <"External", []>: return External();
-		case <"ProtectModifier", []>: return ProtectModifier();
+		case <"Protect", []>: return Protect();
+		case <"Require", []>: return Require();
+		case <"Extend", []>: return Extend();
 		case <"Attrs", [arg0]>: return Attrs(arg0);
 		case <"Attr", [arg0, arg1]>: return Attr(arg0, arg1);
 		case <"ProcClause", [arg0, arg1]>: return ProcClause(arg0, arg1);

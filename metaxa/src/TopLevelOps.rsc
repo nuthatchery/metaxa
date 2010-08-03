@@ -8,7 +8,10 @@ import Node;
 
 public AST applyImpl(AST lhs, AST rhs, AST orig) {
 	set[ErrorMark] marks = {};
-	
+
+	println("definesOf(rhs):");
+	for(d <- definesOf(rhs))
+		println("  <d>");
 	try {
 		unDefs = sigDiff(onOf(rhs), definesOf(lhs));
 		for(d <- unDefs) {
@@ -25,25 +28,12 @@ public AST applyImpl(AST lhs, AST rhs, AST orig) {
 		//if(size(unDefs) > 0)
 		//	return addMarks(marks, orig);
 	
-		defPart = decls(sigUnion(definesOf(rhsInlined), definesOf(lhs)));
-		
-		AST result;
-		switch(lhs) {
-			case OnDefines(onPart, _):
-				result = OnDefines(onPart, defPart);
-			case External(ExternalExtendsOnDefines(language,name,
-								extends,onPart, _)):
-				result = External(ExternalExtendsOnDefines(language, name, 
-								extends, onPart, defPart));
-			default: {
-				marks = addMark(marks, "Don\'t know how to apply implementation to <getName(lhs)>", lhsOf(orig));
-				result = At(lhs, rhs);
-			}
-		}
-		return result[@mark=marks];
+		return decls(sigUnion(definesOf(rhsInlined), fullOf(lhs)))[@mark=marks];
 	}
 	catch InternalError(msg, ast): {
-		if(locOf(ast) != unknownLoc)
+		if(hasMark(ast))
+			return addMarks(getMarks(ast), orig);
+		else if(locOf(ast) != unknownLoc)
 			return addMark(orig, msg, "error", [locOf(ast)]);
 		else
 			return addMark(orig, msg);
@@ -65,8 +55,7 @@ public AST makeExternal(AST language, AST name, AST tree) {
 		return DeclBody(seq(ds));
 	}
 	else
-		throw InternalError("Top-level expression not fully flattened: <getName(tree)>", tree);
-		
+		throw InternalError("makeExternal: Top-level expression not fully flattened: <getName(tree)>", tree);
 }
 
 private AST makeExternal(AST language, AST name, AST mods, AST def, AST attrs) {
@@ -84,44 +73,24 @@ private AST makeExternal(AST language, AST name, AST mods, AST def, AST attrs) {
 	}
 }
 
+		
 public set[AST] definesOf(AST expr) {
-	result = Nop();
-	switch(expr) {
-		case OnDefines(_, defPart): 
-			result = defPart;
-		case External(ExternalExtendsOnDefines(_,_,_,_,defPart)): 
-			result = defPart;
-		case DeclBody(seq(ds)): 
-			result = defPart;
-	}
-	
-	if(DeclBody(seq(ds)) := result)
-		return toSet(ds);
-	else if(Nop() := result)
-		throw InternalError("Don\'t know how to get defines-part from <getName(expr)>", expr);
-	else
-		throw InternalError("Top-level expression not fully flattened: <getName(expr)>", expr);
+	return {d | d <- fullOf(expr), !hasModifier(d, {Require(),Extend()})};
 }
 
 public set[AST] onOf(AST expr) {
-	result = Nop();
-	switch(expr) {
-		case OnDefines(onPart, _): 
-			result = onPart;
-		case External(ExternalExtendsOnDefines(_,_,_,onPart,_)):
-			result = onPart;
-	}
-
-	if(DeclBody(seq(ds)) := result)
-		return toSet(ds);
-	else if(Nop() := result)
-		throw InternalError("Don\'t know how to get on-part from <getName(expr)>", expr);
-	else
-		throw InternalError("Top-level expression not fully flattened: <getName(expr)>", expr);
+	return {d | d <- fullOf(expr), hasModifier(d, Require())};
 }
 
 public set[AST] fullOf(AST expr) {
-	return sigUnion(definesOf(expr), onOf(expr));
+	if(DeclBody(seq(ds)) := expr)
+		return toSet(ds);
+	else if(Define(_,_,_,_) := expr)
+		return {expr};
+	else if(Nop() := expr)
+		return {};
+	else
+		throw InternalError("fullOf: Top-level expression not fully flattened: <getName(expr)>", expr);
 }
 
 public set[AST] signatureOf(AST expr) {
@@ -143,6 +112,8 @@ public AST canonical(AST decl) {
 	switch(decl) {
 		case Define(_,dcl,_,_):
 			result = Define(Nop(), dcl, Nop(), EmptyBodyS());
+		case Nop():
+			result = decl;
 		default:
 			throw InternalError("Don\'t know how to canonicalize <getName(decl)>", decl);
 	}

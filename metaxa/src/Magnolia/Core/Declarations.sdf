@@ -113,8 +113,12 @@ exports
 
 	"external" -> SubClause {cons("External")}
 	
-	"protect" -> Modifier	{cons("ProtectModifier")}
+	"protect" -> Modifier	{cons("Protect")}
 
+	"require" -> Modifier	{cons("Require")}
+	
+	"extend" -> Modifier	{cons("Extend")}
+	
 %%% Declaration Attributes
 
   sorts
