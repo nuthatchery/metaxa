@@ -4,9 +4,6 @@ exports
 sorts
 	SQuoted DQuoted Quoted
 
-imports
-	Meta/MetaMagnolia
-
 exports
 
 context-free start-symbols
@@ -71,13 +68,18 @@ context-free syntax
 
 	"rules" MXaRuleDef+		-> MXaCSection	{cons("MXaResolve")}
 
-	"syntax"	Quoted			-> MXaCSection	{cons("MXaSyntax")}
-
-	"syntax"	MXaTokenList	-> MXaCSection	{cons("MXaSyntaxDef")}
+	"syntax"	MXaSyntaxRule+	-> MXaCSection	{cons("MXaSyntax")}
 	
 	"patterns" MXaTerm+		-> MXaCSection	{cons("MXaPatterns")}
 
 
+	Quoted -> MXaSyntaxRule			{cons("MXaSyntaxExample")}
+
+	MXaTokenList -> MXaSyntaxRule	{cons("MXaSyntaxTokens")}
+	
+	MXaType "=" MXaSyntaxExpr ";"	-> MXaSyntaxRule {cons("MXaSyntaxProd")}
+	
+	
 	MXaRuleClause+ MXaLINE MXaRuleConclusion		-> MXaRuleDef	{cons("MXaRuleDef")}
 
 	MXaExpr MXaTransition MXaExpr		-> MXaRuleClause
