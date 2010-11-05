@@ -1,0 +1,36 @@
+module Meta/SyntaxDef
+
+exports
+
+context-free syntax
+
+	"syntax" SyntaxRules	-> CSection	{cons("Syntax")}
+	SyntaxRule*						-> SyntaxRules {cons("SyntaxRules")}
+	SyntaxRule* "where" SyntaxRule* -> SyntaxRules {cons("SyntaxRulesWhere")}
+
+	Quoted				-> SyntaxRule	{cons("SyntaxExample")}
+
+	TokenList			-> SyntaxRule	{cons("SyntaxTokens")}
+
+	SugarDef			-> SyntaxRule	{cons("SyntaxSugar")}
+		
+	Sort "=" BNFExpr ";"	-> Alias {cons("SyntaxAlias")}
+	
+	BNFRule -> SyntaxRule
+	
+	Var "=" {BNFTopExpr "|"}* ";"	-> BNFRule {cons("SyntaxProd")}
+	
+	BNFExpr*		-> BNFTopExpr	{cons("NoCons")}
+	Cons ":" BNFExpr* -> BNFTopExpr	{cons("Cons")}
+	
+	"{" BNFExpr BNFToken "}" REP -> BNFExpr	{cons("iter")}
+	
+	"\"" SYMBOL "\""	-> BNFToken	{cons("Symbol"), category("Token")}
+	
+	Var					-> BNFToken {cons("Sort")}
+
+	BNFToken -> BNFExpr
+		
+	"(" BNFExpr* ")" -> BNFExpr {bracket}
+	
+	BNFExpr "?" -> BNFExpr {cons("opt")}
