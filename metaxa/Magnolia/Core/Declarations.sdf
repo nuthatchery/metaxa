@@ -1,0 +1,312 @@
+%% Declarations.sdf is part of Magnolia
+%%
+%% Copyright (C) 2008,2009  Anya Helene Bagge
+%% Copyright (C) 2008,2009  University of Bergen
+%%
+%% Contact: <magnolia@magnolia-lang.org>
+%%
+%% This program is free software: you can redistribute it and/or modify
+%% it under the terms of the GNU General Public License as published by
+%% the Free Software Foundation, either version 3 of the License, or
+%% (at your option) any later version.
+%% 
+%% This program is distributed in the hope that it will be useful,
+%% but WITHOUT ANY WARRANTY; without even the implied warranty of
+%% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%% GNU General Public License for more details.
+%% 
+%% You should have received a copy of the GNU General Public License
+%% along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+%% This module defines the common declaration syntax for Magnolia. The main 
+%% non-terminal is
+%%
+%%   Decl -- a full, semicolon-terminated declaration.
+%%
+%% A declaration consists of one or more clauses. The main clause starts
+%% with a keyword identifying the declaration. Additional (subordinate)
+%% clauses follow the main clause, and declarations can commonly have
+%% zero or more of them, the exact kinds depending on the declaration.
+%%
+%%   _Clause   -- the main part of a declaration, should contain whatever
+%%       information uniquely identifies the declared symbol
+%%   _SubClause -- a sub-clause with additional information about a decl
+%%
+%% Some clauses additionally contain a list of specifiers.
+%%
+%%   _Spec   -- a particular item in clause
+%%
+%% The structure of a declaration is:
+%%
+%%  MainClause SubClauses Definition? -> Decl
+%%
+%% The AttrSubClause is common to all declarations, and is the place for
+%% any extra associated information that we do not want to create
+%% special syntax for.
+%%
+%% It may be preferable (for error management) to allow all subclauses for
+%% all declarations in the grammar, and then complain about them in the
+%% subsequent analysis.
+
+module Magnolia/Core/Declarations
+
+
+exports
+
+%%% Declaration and definition sentences
+
+  sorts
+	Decl		SubClause
+	StatDeclarative ExprDeclarative
+	TypeDeclarative	
+	
+  %% Externals
+	BlockStat	Expr
+	Type		DataRep
+	Name
+
+  context-free syntax
+
+    Modifier* StatDeclarative SubClause* StatDefBodyS
+	-> Decl
+		{cons("Define")}
+
+    Modifier* StatDeclarative SubClause* StatDefBodyNS
+	-> DeclNS
+		{cons("Define")}
+
+    Modifier* ExprDeclarative SubClause* ExprDefBodyS
+	-> Decl
+		{cons("Define")}
+
+    Modifier* ExprDeclarative SubClause* ExprDefBodyNS
+	-> DeclNS
+		{cons("Define")}
+
+    Modifier* TypeDeclarative SubClause* TypeDefBodyS
+	-> Decl
+		{cons("Define")}
+
+    Modifier* TypeDeclarative SubClause* TypeDefBodyNS
+	-> DeclNS
+		{cons("Define")}
+
+
+	"=" Stat ";"	-> StatDefBodyS		{cons("BodyS")}
+	BlockStat		-> StatDefBodyS
+	";"				-> StatDefBodyS		{cons("EmptyBodyS")}
+	"=" Stat		-> StatDefBodyNS	{cons("BodyNS")}
+	BlockStat		-> StatDefBodyNS
+					-> StatDefBodyNS	{cons("EmptyBodyNS")}
+				
+	"=" Expr ";"	-> ExprDefBodyS		{cons("BodyS")}
+	";"				-> ExprDefBodyS		{cons("EmptyBodyS")}
+	"=" Expr		-> ExprDefBodyNS	{cons("BodyNS")}
+					-> ExprDefBodyNS	{cons("EmptyBodyNS")}
+
+	"=" Type ";"	-> TypeDefBodyS		{cons("BodyS")}
+	";"				-> TypeDefBodyS		{cons("EmptyBodyS")}
+	"=" Type		-> TypeDefBodyNS	{cons("BodyNS")}
+					-> TypeDefBodyNS	{cons("EmptyBodyNS")}
+
+    "{" Decl* "}" -> DeclBody {cons("DeclBody")}
+
+	"external" -> SubClause {cons("External")}
+	
+	"protect" -> Modifier	{cons("Protect")}
+
+	"require" -> Modifier	{cons("Require")}
+	
+	"extend" -> Modifier	{cons("Extend")}
+	
+%%% Declaration Attributes
+
+  sorts
+        AttrClause Attribute
+
+  context-free syntax
+
+    "[" {Attribute ","}* "]"    -> AttrClause           {cons("Attrs")}
+
+    AttrClause -> SubClause
+
+    Name "(" {Expr ","}* ")" -> Attribute               {cons("Attr")}
+
+
+	
+%%% Procedure Declarations
+  sorts
+    ProcClause ProcName ProcIdentifier
+
+  context-free syntax
+
+    "procedure" ProcIdentifier ProcedureParamList
+	-> ProcClause
+		{cons("ProcClause")}
+
+    ProcClause -> StatDeclarative
+
+    Identifier -> ProcIdentifier
+
+	Name -> ProcName
+	
+    "_=_" -> ProcIdentifier {cons("Assign")}
+
+  lexical restrictions
+
+    "procedure"		-/- [A-Za-z\_\$0-9]
+    "_=_"		-/- [A-Za-z\_\$0-9]
+
+%%% Function Declarations
+  sorts
+    FunClause FunName FunIdentifier
+
+  context-free syntax
+
+    "function" FunIdentifier FunctionParamList ":" Type
+	-> FunClause			{cons("FunClause")}
+
+    FunClause -> ExprDeclarative
+
+	Identifier -> FunIdentifier
+	
+	Name -> FunName
+	
+	"guard" Expr -> GuardClause {cons("Guard")}
+	
+	GuardClause -> SubClause
+	
+  lexical restrictions
+
+    "function"		-/- [A-Za-z\_\$0-9]
+
+%%% Predicate Declarations
+  sorts
+    PredClause PredName
+
+  context-free syntax
+
+    "predicate" FunIdentifier FunctionParamList
+	-> PredClause			{cons("PredClause")}
+
+    PredClause -> ExprDeclarative
+
+  lexical restrictions
+
+    "predicate"		-/- [A-Za-z\_\$0-9]
+
+
+%%% Axiom Declarations
+  sorts
+    AxiomClause AxiomName AxiomIdentifier
+
+  context-free syntax
+
+    "axiom" Identifier FunctionParamList
+	-> AxiomClause			{cons("AxiomClause")}
+
+    "theorem" Identifier FunctionParamList
+	-> AxiomClause			{cons("AxiomClause")}
+
+    "proof" Identifier FunctionParamList
+	-> AxiomClause			{cons("AxiomClause")}
+
+    AxiomClause -> StatDeclarative
+
+    Name -> AxiomName
+    
+    Identifier -> AxiomIdentifier
+
+  lexical restrictions
+
+    "axiom"		-/- [A-Za-z\_\$0-9]
+    "proof"		-/- [A-Za-z\_\$0-9]
+
+%%% Parameters and Parameter Modes
+  sorts
+	TypeParamList TypeParam
+	FunctionParamList FunctionParam
+	ProcedureParamList ProcedureParam
+	ParamMode
+
+  context-free syntax
+
+   %% "(" {TypeParam ","}* ")"	-> TypeParamList	{cons("Dummy")}
+
+    "(" {FunctionParam ","}* ")"-> FunctionParamList	{cons("ParamList")}
+
+    "(" {ProcedureParam ","}* ")"-> ProcedureParamList	{cons("ParamList")}
+
+   %% Type			-> TypeParam		{cons("TypeExprParam")}
+
+   %% Type Identifier		-> TypeParam		{cons("TypeExprParam")}
+
+   %% "type"			-> TypeParam		{cons("AnonTypeParam")}
+
+   %% "type" Identifier		-> TypeParam		{cons("TypeParam")}
+
+   %% "type" TypeParamList	-> TypeParam		{cons("AnonTypePParam")}
+
+   %% "type" Identifier TypeParamList -> TypeParam	{cons("TypePParam")}
+
+    VarIdentifier ":" Type		-> FunctionParam	{cons("Param")}
+
+    ParamMode VarIdentifier ":" Type -> ProcedureParam	{prefer, cons("Param")}
+
+    "obs"			-> ParamMode		{cons("Obs")}
+    "upd"			-> ParamMode		{cons("Upd")}
+    "out"			-> ParamMode		{cons("Out")}
+    "exp"			-> ParamMode		{cons("Exp")}
+    "giv"			-> ParamMode		{cons("Giv")}
+    "del"			-> ParamMode		{cons("Del")}
+    "nrm"			-> ParamMode		{cons("Nrm")}
+
+  lexical restrictions
+
+    "type"		-/- [A-Za-z\_\$0-9]
+
+    "obs"		-/- [A-Za-z\_\$0-9]
+    "upd"		-/- [A-Za-z\_\$0-9]
+    "out"		-/- [A-Za-z\_\$0-9]
+    "exp"		-/- [A-Za-z\_\$0-9]
+    "giv"		-/- [A-Za-z\_\$0-9]
+    "del"		-/- [A-Za-z\_\$0-9]
+    "nrm"		-/- [A-Za-z\_\$0-9]
+
+%%% Variables
+
+  sorts VarClause VarIdentifier VarName
+  
+  context-free syntax
+
+    "var" VarIdentifier ":" Type -> VarClause {cons("VarClause")}
+
+    VarClause -> ExprDeclarative
+
+	Identifier -> VarIdentifier
+	
+	Name -> VarName
+	
+  lexical restrictions
+
+    "var"		-/- [A-Za-z\_\$0-9]
+
+%%% Types and Classes
+
+  sorts 
+	TypeClause TypeName TypeIdentifier
+
+  context-free syntax
+
+    "type" TypeIdentifier	-> TypeClause {cons("TypeClause")}
+
+    TypeClause -> TypeDeclarative
+
+	Name -> TypeName
+	
+	Identifier -> TypeIdentifier
+	
+  lexical restrictions
+
+    "type"		-/- [A-Za-z\_\$0-9]
+

@@ -1,0 +1,63 @@
+%% Literals.sdf is part of Magnolia
+%%
+%% Copyright (C) 2008  Anya Helene Bagge
+%% Copyright (C) 2008  University of Bergen
+%%
+%% Contact: <magnolia@magnolia-lang.org>
+%%
+%% This program is free software: you can redistribute it and/or modify
+%% it under the terms of the GNU General Public License as published by
+%% the Free Software Foundation, either version 3 of the License, or
+%% (at your option) any later version.
+%% 
+%% This program is distributed in the hope that it will be useful,
+%% but WITHOUT ANY WARRANTY; without even the implied warranty of
+%% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%% GNU General Public License for more details.
+%% 
+%% You should have received a copy of the GNU General Public License
+%% along with this program.  If not, see <http://www.gnu.org/licenses/>.
+module Magnolia/Core/Literals
+
+exports
+  sorts
+    Literal
+    DecNumeral
+    FloatNumeral
+    Exponent
+    StringPart
+    U16Char
+    U32Char
+    String
+
+  lexical syntax
+    DecNumeral -> Literal {cons("Int")}
+    FloatNumeral -> Literal {cons("Real")}
+    "\"" String "\"" -> StringLiteral {cons("String")}
+    StringLiteral -> Literal
+
+    [\+\-]? [0-9]+ -> DecNumeral
+    [\+\-]? "." [0-9]+ Exponent? -> FloatNumeral
+    [\+\-]? [0-9]+ "." [0-9]* Exponent? -> FloatNumeral
+    [\+\-]? [0-9]+ Exponent -> FloatNumeral
+    [eE] DecNumeral -> Exponent
+
+    ~[\"\\]				-> StringPart
+    "\\" [\\\"nrbfe]			-> StringPart
+    "\\x" [0-9a-fA-F] [0-9a-fA-F]	-> StringPart
+    "\\#" [0-9]+ ";"			-> StringPart
+    "\\#x" [0-9a-fA-F]+ ";"		-> StringPart
+    "\\&" [a-z]+ ";"			-> StringPart
+    U16Char -> StringPart
+    U32Char -> StringPart
+    "\\u" [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F] -> U16Char
+    "\\U" [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F] -> U32Char
+    StringPart*	-> String
+
+  lexical restrictions
+
+    DecNumeral -/- [0-9]
+    DecNumeral -/- [\.].[0-9]
+    FloatNumeral -/- [0-9\.eE]
+    Exponent -/- [0-9]
+    String -/- ~[\"]

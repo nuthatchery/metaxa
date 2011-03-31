@@ -1,0 +1,1248 @@
+definition
+module Magnolia/BaseExt/Declarations
+
+
+exports
+
+%%% Declaration and definition sentences
+
+  sorts
+	Decl		SubClause
+	StatDeclarative ExprDeclarative
+	TypeDeclarative	%%DeclDeclarative 
+
+  %% Externals
+	BlockStat	Expr
+	Type		DataRep
+	Identifier
+
+  context-free syntax
+
+
+%%% Function Declarations
+  sorts
+    FunClause FunName
+
+  context-free syntax
+
+    "dataInvariant" FunctionParamList
+	-> FunClause			{cons("DataInvariant")}
+
+    "dataInvariant" ProcedureParamList
+	-> ProcClause			{cons("DataInvariant")}
+
+    "congruence" FunctionParamList
+	-> FunClause			{prefer,cons("Congruence")}
+
+    "congruence" ProcedureParamList
+	-> ProcClause			{cons("Congruence")}
+
+
+    FunClause -> ExprDeclarative
+
+%%% Parameters and Parameter Modes
+  sorts
+	TypeParamList TypeParam
+	FunctionParamList FunctionParam
+	ProcedureParamList ProcedureParam
+	ParamMode
+
+  context-free syntax
+
+    Type			-> FunctionParam	{cons("AnonParam")}
+
+    Identifier ":" Type		-> ProcedureParam	{cons("ObsParam")}
+
+    ParamMode ":" Type		-> ProcedureParam	{cons("AnonParam")}
+
+%%% Declaration Attributes
+
+  sorts
+	AttrClause Attribute
+
+  context-free syntax
+
+    Identifier -> Attribute				{cons("Attr")}
+
+%%% Types and Classes
+
+  context-free syntax
+
+    "opens" "(" {Identifier ","}* ")"  -> SubClause {cons("Opens")}
+
+    "default" "(" {Identifier ","}* ")"  -> SubClause {cons("Default")}
+
+module Magnolia/BaseExt/Operators
+
+exports
+  sorts
+    BINOP UNOP
+    DOTOP MULOP ADDOP SHFOP CMPOP EQUOP BTAND BTXOR BITOR LGAND LOGOR 
+    LGNOT BTNOT NEGOP RNGOP LGIMP SUBST 
+
+    Expr	Identifier	ID	NOID
+
+%%% Operators are divided into classes with similar behaviour
+  lexical syntax
+    "."          -> DOTOP
+    "*"|"/"|"%"|"÷"  -> MULOP
+    "**"         -> MULOP
+    "+"|"-"      -> ADDOP
+    "++"|"--"    -> ADDOP
+    "<<"|">>"    -> SHFOP
+    ".."         -> RNGOP
+    "<"|">"|"<="|">=" -> CMPOP
+    "=="|"!="    -> EQUOP
+    "&"          -> BTAND
+    "^"          -> BTXOR
+    "|"          -> BITOR
+    "<->"        -> SUBST
+    "&&"         -> LGAND
+    "||"         -> LOGOR
+    "=>"         -> LGIMP
+    
+
+    DOTOP|MULOP|ADDOP|SHFOP|RNGOP|CMPOP|EQUOP|BTAND|BTXOR|BITOR|SUBST|LGAND|LOGOR|LGIMP -> BINOP
+
+    "+"|"-"      -> NEGOP
+    "~"          -> BTNOT
+    "!"          -> LGNOT
+
+    NEGOP|BTNOT|LGNOT -> UNOP
+
+    "_" BINOP "_" -> ID {prefer}
+    UNOP "_" -> ID {prefer}
+    "_[_]" -> ID {prefer}
+    "_[_]=_" -> ID {prefer}
+    "_(_)" -> ID {prefer}
+    "_=_" -> ID {prefer}
+    "_in_" -> ID {prefer}
+    "_notin_" -> ID {prefer}
+
+  lexical restrictions
+    ADDOP -/- [\+\-]
+    MULOP -/- [\*]
+    BITOR -/- [\|]
+    BTAND -/- [\&]
+    NEGOP -/- [0-9]
+    NOID -/- [\+\-\*\/\|\&\^\<\>\!\.\[\]\=]
+
+%%% Binary Operators
+  context-free syntax
+    Expr "." Identifier -> Expr  {prefer,cons("DotOp")}
+    Expr "." DecNumeral -> Expr  {prefer,cons("DotOp")}
+    Expr MULOP Expr -> Expr  {left, cons("BinOp")}
+    Expr ADDOP Expr -> Expr  {left, cons("BinOp")}
+    Expr SHFOP Expr -> Expr  {left, cons("BinOp")}
+    Expr RNGOP Expr -> Expr  {left, cons("BinOp")}
+    Expr CMPOP Expr -> Expr  {left, cons("BinOp")}
+    Expr "in" Expr -> Expr  {left, cons("In")}
+    Expr "not" "in" Expr -> Expr  {left, cons("NotIn")}
+    Expr EQUOP Expr -> Expr  {left, cons("BinOp")}
+    Expr BTAND Expr -> Expr  {left, cons("BinOp")}
+    Expr BTXOR Expr -> Expr  {left, cons("BinOp")}
+    Expr BITOR Expr -> Expr  {left, cons("BinOp")}
+    Expr SUBST Expr -> Expr  {left, cons("BinOp")}
+    Expr LGAND Expr -> Expr  {left, cons("BinOp")}
+    Expr LOGOR Expr -> Expr  {left, cons("BinOp")}
+    Expr LGIMP Expr -> Expr  {right, cons("BinOp")}
+
+    Expr "[" {Expr ","}* "]" -> Expr {cons("Index")}
+
+%%% Unary Operators
+
+    NEGOP Expr -> Expr {cons("PreOp")}
+    BTNOT Expr -> Expr {cons("PreOp")}
+    LGNOT Expr -> Expr {cons("PreOp")}
+
+%%% Priorities
+  context-free priorities
+    {
+      Expr "." Identifier -> Expr
+      Expr "[" {Expr ","}* "]" -> Expr
+    }
+  > {
+      NEGOP Expr -> Expr
+      BTNOT Expr -> Expr
+      LGNOT Expr -> Expr
+    }
+  > {left:
+      Expr MULOP Expr -> Expr
+    }
+  > {left:
+      Expr ADDOP Expr -> Expr
+    }
+  > {left:
+      Expr SHFOP Expr -> Expr
+    }
+  > {left:
+      Expr RNGOP Expr -> Expr
+    }
+  > {left:
+      Expr CMPOP Expr -> Expr
+      Expr "in" Expr -> Expr
+      Expr "not" "in" Expr -> Expr
+    }
+  > {left:
+      Expr EQUOP Expr -> Expr
+    }
+  >   Expr BTAND Expr -> Expr
+  >   Expr BTXOR Expr -> Expr
+  >   Expr BITOR Expr -> Expr
+  >   Expr SUBST Expr -> Expr
+  >   Expr LGAND Expr -> Expr
+  >   Expr LOGOR Expr -> Expr
+  >   Expr LGIMP Expr -> Expr
+
+lexical restrictions
+
+  "in"		-/- [A-Za-z\_\$0-9]
+  "not" 	-/- [A-Za-z\_\$0-9]
+
+module Magnolia/BaseExt/Statements
+  
+exports
+  sorts
+    Stat
+    Expr	ProcName	AttrClause
+    Identifier	Type
+
+  context-free syntax
+
+%%    "if" Expr "then" Stat* "end" -> Stat {cons("BaseIfThen")}
+%%    "if" "(" Expr ")" Stat -> Stat {prefer, cons("CIfThen")}
+%%    "if" "(" Expr ")" Stat "else" Stat -> Stat {cons("CIf")}
+
+%%    "while" "(" Expr ")" Stat -> Stat {cons("CWhile")}
+
+%%    "open" "(" {Identifier ","}* ")" Stat -> Stat {cons("BaseOpen")}
+
+    "for" Identifier "in" Expr Stat -> Stat {cons("BaseFor")}
+
+    "print" {Expr ","}* ";" -> Stat {prefer, cons("BasePrintLn")}
+
+    "print" {Expr ","}* "," ";" -> Stat {prefer, cons("BasePrint")}
+
+%%    Identifier "." Identifier "=" Expr ";" -> Stat {cons("BaseFieldAssign")}
+%%    Identifier "[" {Expr ";"}+ "]" "=" Expr ";" -> Stat {cons("BaseIndexedAssign")}
+
+    "var" Identifier ":" Type "=" Expr ";" -> Stat {cons("BaseVarDefTI")}
+
+    "var" Identifier "=" Expr ";" -> Stat {cons("BaseVarDefI")}
+
+    "var" Identifier ";" -> Stat {cons("BaseVarDefI")}
+
+    "var" Identifier ":" Type ";" -> Stat {cons("BaseVarDefT")}
+
+module Magnolia/BaseExt/Literals
+
+exports
+  sorts
+	HexNumeral	BinNumeral	OctNumeral
+	Literal
+
+  context-free syntax
+    HexNumeral -> Literal {cons("Hex")}
+    BinNumeral -> Literal {cons("Bin")}
+    OctNumeral -> Literal {cons("Oct")}
+
+  lexical syntax
+    [0][xX] [0-9a-fA-F]+ -> HexNumeral
+    [0][bB] [0-1]+ -> BinNumeral
+    [0][oO] [0-7]+ -> OctNumeral
+
+  lexical restrictions
+
+    HexNumeral -/- [0-9a-fA-F]
+    BinNumeral -/- [0-1]
+    OctNumeral -/- [0-7]
+
+module Magnolia/BaseExt
+
+imports 
+  Magnolia/Core
+  Magnolia/BaseExt/Literals
+  Magnolia/BaseExt/Statements
+  Magnolia/BaseExt/Operators
+  Magnolia/BaseExt/Declarations
+
+exports
+  sorts
+    Program
+    Decl
+    ModuleHead
+    ModuleClause
+    ImportClause
+    CompileClause
+    QuotedString
+    RequiresClause
+    ConceptClauseArgument
+    TopDecl
+
+  context-free syntax
+
+    -> ModuleHead {cons("SimpleModule")}
+
+%%    ModuleClause ";" -> TopDecl {cons("ModuleClause")}
+
+    "language" {Name ","}* -> ModuleClause {cons("Language")}
+
+    "imports" {ImportClause ","}* -> ModuleClause {cons("Imports")}
+
+    "requires" {RequiresClause ","}* -> ModuleClause {cons("Requires")}
+
+    "compile" "\"" String "\"" "{" CompileClause* "}" 
+		-> ModuleClause {cons("CompilePragma")}
+
+    ID "(" {QuotedString ","}* ")" ";" 
+		-> CompileClause {cons("Pragma")}
+
+    "\"" String "\"" -> QuotedString {cons("Dummy")}
+
+    Identifier "<" {ConceptClauseArgument ","}* ">" -> RequiresClause {cons("ImportRequires")}
+    Name -> ImportClause {cons("ImportAll")}
+
+    Type -> ConceptClauseArgument {cons("Unresolved")}
+
+    "module" Name -> ImportClause {cons("ImportModule")}
+
+    "module" Name "=" Name -> ImportClause {cons("ImportRename")}
+
+    ";" -> Decl {cons("Nop")}
+
+module Magnolia/Core/Institutions
+
+
+exports
+  sorts
+  	Modifier
+  	
+  context-free syntax
+  	
+	"default" -> Modifier	{cons("DefaultModifier")}
+	
+	"abstract" -> Modifier	{cons("AbstractModifier")}
+
+%%% Concepts and implementations
+
+  sorts 
+	 TopDecl
+
+  context-free syntax
+
+    Modifier* "concept" Identifier SubClause* "=" InstExpr
+    	-> TopDecl {cons("ConceptDef")}
+
+    Modifier* "implementation" Identifier SubClause* "=" InstExpr
+    	-> TopDecl {cons("ImplDef")}
+ 
+ 	Modifier* "library" Identifier SubClause* "=" InstExpr
+ 		-> TopDecl {cons("LibraryDef")}
+
+    Modifier* "satisfaction" Identifier SubClause* "=" SatisfactionExpr
+ 		-> TopDecl	{cons("SatisfactionDef")}
+
+    Modifier* "implementation" Identifier SubClause* ImplExpr
+    	 -> Decl {deprecated("Add '=' before body"), cons("ImplDef")}
+
+    Modifier* "concept" Identifier SubClause* DeclBody
+    	-> TopDecl {deprecated("Add '=' before body"), cons("ConceptDef")}
+ 	
+ 	
+  lexical restrictions
+
+    "concept"			-/- [A-Za-z\_\$0-9]
+    "implementation"	-/- [A-Za-z\_\$0-9]
+    "library"			-/- [A-Za-z\_\$0-9]
+    "satisfaction"		-/- [A-Za-z\_\$0-9]
+
+ 
+%% Institution Expressions
+
+  sorts
+  	InstExpr
+  	
+  context-free syntax
+ 
+ 	Name				-> InstExpr
+
+	
+  	AlgDecl 			-> InstExpr
+  	
+  	"signature" InstExpr	-> InstExpr		{left, cons("SignatureOf")}
+  	
+  	"full" InstExpr			-> InstExpr		{left,cons("FullOf")}
+
+  	"on" InstExpr			-> InstExpr		{left, cons("OnOf")}
+
+  	"declared" InstExpr		-> InstExpr		{left, cons("DeclaredOf")}
+
+  	InstExpr FilterExpr		-> InstExpr		{left, cons("Filtered")}
+  	
+  	"retain" AlgDeclOrName	-> FilterExpr	{left, cons("RetainFilter")}
+  	
+  	"remove" AlgDeclOrName	-> FilterExpr	{left, cons("RemoveFilter")}
+
+  	InstExpr "[" {Renaming ","}* "]" -> InstExpr	{left, cons("Renamed")}
+ 
+ 	"[" {Renaming ","}* "]" -> InstExpr		{cons("RenameImpl")}
+ 	
+ 	"(" InstExpr ")" -> InstExpr	{bracket}
+ 	 	
+ 	%% Concepts
+ 	
+	InstExpr "morphism" InstExpr	-> InstExpr	{left,cons("Morphed")}
+ 	
+	InstExpr "protect" AlgDeclOrName	-> InstExpr {left,cons("Protected")}
+ 	
+%%	InstExpr "protect" {SingleAlgDecl ","}+		-> InstExpr {left,avoid,deprecated("Wrap protect body in {}"),cons("Protected")}
+
+ 	%% Libraries and Implementations
+ 	
+ 	"on" InstExpr "defines" AlgDecl	-> InstExpr {cons("OnDefines")}
+ 	
+	"defines" AlgDecl					-> InstExpr	{cons("Defines")}
+ 		
+	"external" ExternalExpr				-> InstExpr {cons("External")}
+ 		
+	InstExpr "@" InstExpr				-> InstExpr {left,cons("At")}
+ 		
+	InstExpr "@@" InstExpr				-> InstExpr {left,cons("AtAt")}
+
+	InstExpr "+" InstExpr				-> InstExpr {left,cons("Plus")}
+ 		
+	InstExpr "++" InstExpr				-> InstExpr {left,cons("PlusPlus")}
+ 		
+	InstExpr "**" InstExpr				-> InstExpr {left,cons("TimesTimes")}
+
+	InstExpr "on" Filter				-> InstExpr {left,cons("OnFilter")}
+
+	InstExpr "declared" Filter			-> InstExpr {left,cons("DeclaredFilter")}
+ 		
+	InstExpr "times" InstExpr			-> InstExpr {left,cons("Times")}
+
+	InstExpr "dataInvariant" InstExpr	-> InstExpr {left,cons("DataInvariant")}
+
+	InstExpr "quotient" InstExpr		-> InstExpr {left,cons("Quotient")}
+
+	InstExpr "homomorphism" InstExpr "on" InstExpr "with" InstExpr
+		 								-> InstExpr {left,cons("Homomorphism")}
+
+
+  lexical restrictions
+
+    "signature"			-/- [A-Za-z\_\$0-9]
+    "retain"			-/- [A-Za-z\_\$0-9]
+    "remove"			-/- [A-Za-z\_\$0-9]
+    "morphism"		-/- [A-Za-z\_\$0-9]
+    "protect"		-/- [A-Za-z\_\$0-9]
+    "defines"		-/- [A-Za-z\_\$0-9]
+    "external"		-/- [A-Za-z\_\$0-9]
+    "declared"		-/- [A-Za-z\_\$0-9]
+    "times"			-/- [A-Za-z\_\$0-9]
+    "dataInvariant"	-/- [A-Za-z\_\$0-9]
+    "quotient"		-/- [A-Za-z\_\$0-9]
+    "homomorphism"	-/- [A-Za-z\_\$0-9]
+    "on"			-/- [A-Za-z\_\$0-9]
+    "with"			-/- [A-Za-z\_\$0-9]
+    "@"				-/- [\@]
+    "@@"			-/- [\@]
+    "+"				-/- [\+]
+    "++"			-/- [\+]
+    "**"			-/- [\*]
+
+
+%% Externals
+
+  context-free syntax
+  
+	Identifier Name "defines" InstExpr	
+		-> ExternalExpr {cons("ExternalDefines")}
+
+	Identifier Name "on" InstExpr "defines" InstExpr	
+		-> ExternalExpr {cons("ExternalOnDefines")}
+		
+	Identifier Name "extends" InstExpr "on" InstExpr "defines" InstExpr	
+		-> ExternalExpr {cons("ExternalExtendsOnDefines")}
+		
+  lexical restrictions
+
+    "cpp"		-/- [A-Za-z\_\$0-9]
+    "on"		-/- [A-Za-z\_\$0-9]
+    "defines"	-/- [A-Za-z\_\$0-9]
+    "extends"	-/- [A-Za-z\_\$0-9]
+
+%% Renaming
+
+  context-free syntax
+  
+  	Name "=>" Name -> Renaming	{cons("Rename")}
+ 
+%% Declarations at the Algorithm Level
+
+	DeclBody -> AlgDecl
+	
+	DeclNS -> AlgDecl
+	
+	Name -> AlgDeclOrName
+
+    AlgDecl -> AlgDeclOrName
+ 
+%% Extension of Declaration Syntax
+  	
+  context-free syntax
+
+    "requires" {InstExpr ","}+ ";"			-> Decl	{cons("Requires")}
+
+	"preserve" InstExpr	";"					-> Decl {cons("Preserve")}
+	
+	"congruence" InstExpr ";"				-> Decl {cons("Congruence")}
+	
+	"preserve" InstExpr "on" InstExpr ";"	-> Decl {cons("PreserveOn")}
+	
+	"congruence" InstExpr "on" InstExpr	";" -> Decl {cons("CongruenceOn")}
+	
+	"generate" {Type ","}+ "by" InstExpr ";"-> Decl {cons("GenerateBy")}
+
+	"free" {Type ","}+ "by" InstExpr ";"	-> Decl {cons("FreeBy")}
+
+	"partition" {Type ","}+ "by" InstExpr ";"
+											-> Decl {cons("PartitionBy")}
+
+	"homomorphism" InstExpr "on" InstExpr "with" InstExpr ";" 
+											-> Decl {cons("HomomorphismOnWith")}
+	 
+  lexical restrictions
+
+    "requires"		-/- [A-Za-z\_\$0-9]
+    "preserve"		-/- [A-Za-z\_\$0-9]
+    "congruence"	-/- [A-Za-z\_\$0-9]
+    "generate"		-/- [A-Za-z\_\$0-9]
+    "free"			-/- [A-Za-z\_\$0-9]
+    "partition"		-/- [A-Za-z\_\$0-9]
+    "free"			-/- [A-Za-z\_\$0-9]
+    "by"			-/- [A-Za-z\_\$0-9]
+    "on"			-/- [A-Za-z\_\$0-9]
+    "with"			-/- [A-Za-z\_\$0-9]
+    
+%%% Satisfaction
+
+  context-free syntax
+    
+    Name	-> SatisfactionExpr	
+    
+    InstExpr "models" InstExpr
+    		-> SatisfactionExpr {cons("Models")}
+    
+    InstExpr "with" InstExpr "models" InstExpr
+    		-> SatisfactionExpr {cons("WithModels")}
+
+  lexical restrictions
+
+    "models"			-/- [A-Za-z\_\$0-9]
+    "with"			-/- [A-Za-z\_\$0-9]
+
+context-free priorities
+
+
+  	InstExpr "[" {Renaming ","}* "]"	-> InstExpr
+>  	
+{left:
+  	"signature" InstExpr	-> InstExpr
+  	
+  	"full" InstExpr			-> InstExpr	
+
+  	"on" InstExpr			-> InstExpr
+  	
+  	"declared" InstExpr		-> InstExpr	
+
+	"on" InstExpr "defines" AlgDecl	-> InstExpr
+
+	"defines" AlgDecl	-> InstExpr
+}
+>
+{left: 		
+	InstExpr "**" InstExpr				-> InstExpr
+
+	InstExpr "times" InstExpr			-> InstExpr
+}
+>
+{left: 		
+	InstExpr "@" InstExpr				-> InstExpr
+ 		
+	InstExpr "@@" InstExpr				-> InstExpr
+
+	InstExpr "+" InstExpr				-> InstExpr
+ 		
+	InstExpr "++" InstExpr				-> InstExpr
+}
+>
+{left:
+	InstExpr "on" Filter				-> InstExpr
+
+	InstExpr "declared" Filter			-> InstExpr
+ 
+	InstExpr "dataInvariant" InstExpr	-> InstExpr
+
+	InstExpr "quotient" InstExpr		-> InstExpr
+
+	InstExpr "homomorphism" InstExpr "on" InstExpr "with" InstExpr
+		 								-> InstExpr
+	InstExpr "morphism" InstExpr	-> InstExpr
+ 	
+	InstExpr "protect" AlgDeclOrName	-> InstExpr
+
+ 	InstExpr FilterExpr					-> InstExpr
+}
+>
+	"external" ExternalExpr				-> InstExpr
+
+
+module Magnolia/Core/Declarations
+
+
+exports
+
+%%% Declaration and definition sentences
+
+  sorts
+	Decl		SubClause
+	StatDeclarative ExprDeclarative
+	TypeDeclarative	
+	
+  %% Externals
+	BlockStat	Expr
+	Type		DataRep
+	Name
+
+  context-free syntax
+
+    Modifier* StatDeclarative SubClause* StatDefBodyS
+	-> Decl
+		{cons("Define")}
+
+    Modifier* StatDeclarative SubClause* StatDefBodyNS
+	-> DeclNS
+		{cons("Define")}
+
+    Modifier* ExprDeclarative SubClause* ExprDefBodyS
+	-> Decl
+		{cons("Define")}
+
+    Modifier* ExprDeclarative SubClause* ExprDefBodyNS
+	-> DeclNS
+		{cons("Define")}
+
+    Modifier* TypeDeclarative SubClause* TypeDefBodyS
+	-> Decl
+		{cons("Define")}
+
+    Modifier* TypeDeclarative SubClause* TypeDefBodyNS
+	-> DeclNS
+		{cons("Define")}
+
+
+	"=" Stat ";"	-> StatDefBodyS		{cons("BodyS")}
+	BlockStat		-> StatDefBodyS
+	";"				-> StatDefBodyS		{cons("EmptyBodyS")}
+	"=" Stat		-> StatDefBodyNS	{cons("BodyNS")}
+	BlockStat		-> StatDefBodyNS
+					-> StatDefBodyNS	{cons("EmptyBodyNS")}
+				
+	"=" Expr ";"	-> ExprDefBodyS		{cons("BodyS")}
+	";"				-> ExprDefBodyS		{cons("EmptyBodyS")}
+	"=" Expr		-> ExprDefBodyNS	{cons("BodyNS")}
+					-> ExprDefBodyNS	{cons("EmptyBodyNS")}
+
+	"=" Type ";"	-> TypeDefBodyS		{cons("BodyS")}
+	";"				-> TypeDefBodyS		{cons("EmptyBodyS")}
+	"=" Type		-> TypeDefBodyNS	{cons("BodyNS")}
+					-> TypeDefBodyNS	{cons("EmptyBodyNS")}
+
+    "{" Decl* "}" -> DeclBody {cons("DeclBody")}
+
+	"external" -> SubClause {cons("External")}
+	
+	"protect" -> Modifier	{cons("Protect")}
+
+	"require" -> Modifier	{cons("Require")}
+	
+	"extend" -> Modifier	{cons("Extend")}
+	
+%%% Declaration Attributes
+
+  sorts
+        AttrClause Attribute
+
+  context-free syntax
+
+    "[" {Attribute ","}* "]"    -> AttrClause           {cons("Attrs")}
+
+    AttrClause -> SubClause
+
+    Name "(" {Expr ","}* ")" -> Attribute               {cons("Attr")}
+
+
+	
+%%% Procedure Declarations
+  sorts
+    ProcClause ProcName ProcIdentifier
+
+  context-free syntax
+
+    "procedure" ProcIdentifier ProcedureParamList
+	-> ProcClause
+		{cons("ProcClause")}
+
+    ProcClause -> StatDeclarative
+
+    Identifier -> ProcIdentifier
+
+	Name -> ProcName
+	
+    "_=_" -> ProcIdentifier {cons("Assign")}
+
+  lexical restrictions
+
+    "procedure"		-/- [A-Za-z\_\$0-9]
+    "_=_"		-/- [A-Za-z\_\$0-9]
+
+%%% Function Declarations
+  sorts
+    FunClause FunName FunIdentifier
+
+  context-free syntax
+
+    "function" FunIdentifier FunctionParamList ":" Type
+	-> FunClause			{cons("FunClause")}
+
+    FunClause -> ExprDeclarative
+
+	Identifier -> FunIdentifier
+	
+	Name -> FunName
+	
+	"guard" Expr -> GuardClause {cons("Guard")}
+	
+	GuardClause -> SubClause
+	
+  lexical restrictions
+
+    "function"		-/- [A-Za-z\_\$0-9]
+
+%%% Predicate Declarations
+  sorts
+    PredClause PredName
+
+  context-free syntax
+
+    "predicate" FunIdentifier FunctionParamList
+	-> PredClause			{cons("PredClause")}
+
+    PredClause -> ExprDeclarative
+
+  lexical restrictions
+
+    "predicate"		-/- [A-Za-z\_\$0-9]
+
+
+%%% Axiom Declarations
+  sorts
+    AxiomClause AxiomName AxiomIdentifier
+
+  context-free syntax
+
+    "axiom" Identifier FunctionParamList
+	-> AxiomClause			{cons("AxiomClause")}
+
+    "theorem" Identifier FunctionParamList
+	-> AxiomClause			{cons("AxiomClause")}
+
+    "proof" Identifier FunctionParamList
+	-> AxiomClause			{cons("AxiomClause")}
+
+    AxiomClause -> StatDeclarative
+
+    Name -> AxiomName
+    
+    Identifier -> AxiomIdentifier
+
+  lexical restrictions
+
+    "axiom"		-/- [A-Za-z\_\$0-9]
+    "proof"		-/- [A-Za-z\_\$0-9]
+
+%%% Parameters and Parameter Modes
+  sorts
+	TypeParamList TypeParam
+	FunctionParamList FunctionParam
+	ProcedureParamList ProcedureParam
+	ParamMode
+
+  context-free syntax
+
+   %% "(" {TypeParam ","}* ")"	-> TypeParamList	{cons("Dummy")}
+
+    "(" {FunctionParam ","}* ")"-> FunctionParamList	{cons("ParamList")}
+
+    "(" {ProcedureParam ","}* ")"-> ProcedureParamList	{cons("ParamList")}
+
+   %% Type			-> TypeParam		{cons("TypeExprParam")}
+
+   %% Type Identifier		-> TypeParam		{cons("TypeExprParam")}
+
+   %% "type"			-> TypeParam		{cons("AnonTypeParam")}
+
+   %% "type" Identifier		-> TypeParam		{cons("TypeParam")}
+
+   %% "type" TypeParamList	-> TypeParam		{cons("AnonTypePParam")}
+
+   %% "type" Identifier TypeParamList -> TypeParam	{cons("TypePParam")}
+
+    VarIdentifier ":" Type		-> FunctionParam	{cons("Param")}
+
+    ParamMode VarIdentifier ":" Type -> ProcedureParam	{prefer, cons("Param")}
+
+    "obs"			-> ParamMode		{cons("Obs")}
+    "upd"			-> ParamMode		{cons("Upd")}
+    "out"			-> ParamMode		{cons("Out")}
+    "exp"			-> ParamMode		{cons("Exp")}
+    "giv"			-> ParamMode		{cons("Giv")}
+    "del"			-> ParamMode		{cons("Del")}
+    "nrm"			-> ParamMode		{cons("Nrm")}
+
+  lexical restrictions
+
+    "type"		-/- [A-Za-z\_\$0-9]
+
+    "obs"		-/- [A-Za-z\_\$0-9]
+    "upd"		-/- [A-Za-z\_\$0-9]
+    "out"		-/- [A-Za-z\_\$0-9]
+    "exp"		-/- [A-Za-z\_\$0-9]
+    "giv"		-/- [A-Za-z\_\$0-9]
+    "del"		-/- [A-Za-z\_\$0-9]
+    "nrm"		-/- [A-Za-z\_\$0-9]
+
+%%% Variables
+
+  sorts VarClause VarIdentifier VarName
+  
+  context-free syntax
+
+    "var" VarIdentifier ":" Type -> VarClause {cons("VarClause")}
+
+    VarClause -> ExprDeclarative
+
+	Identifier -> VarIdentifier
+	
+	Name -> VarName
+	
+  lexical restrictions
+
+    "var"		-/- [A-Za-z\_\$0-9]
+
+%%% Types and Classes
+
+  sorts 
+	TypeClause TypeName TypeIdentifier
+
+  context-free syntax
+
+    "type" TypeIdentifier	-> TypeClause {cons("TypeClause")}
+
+    TypeClause -> TypeDeclarative
+
+	Name -> TypeName
+	
+	Identifier -> TypeIdentifier
+	
+  lexical restrictions
+
+    "type"		-/- [A-Za-z\_\$0-9]
+
+module Magnolia/Core/Data
+
+exports
+
+%%% Types and Classes
+
+  sorts 
+	DataRep ConsSpec
+  %% Externals
+	DecNumeral Type Decl Identifier
+
+  context-free syntax
+
+    DecNumeral ".." DecNumeral ";"	-> DataRep {cons("NumRep")}
+    "type" Type	";"			-> DataRep {cons("AliasType")}
+    "struct" "{" Decl* "}"		-> DataRep {cons("StructRep")}
+    "union" "{" Decl* "}"		-> DataRep {cons("UnionRep")}
+    {ConsSpec ","}* ";"			-> DataRep {cons("TermRep")}
+    Identifier				-> ConsSpec {cons("TermCons0")}
+    Identifier "(" {DataRep ","}* ")"	-> ConsSpec {cons("TermCons")}
+
+lexical restrictions
+
+  "type"	-/- [A-Za-z\_\$0-9]
+  "struct" 	-/- [A-Za-z\_\$0-9]
+  "union" 	-/- [A-Za-z\_\$0-9]
+
+module Magnolia/Core/Expressions
+
+exports
+  sorts
+    Expr
+    InitSpec
+    Fun
+    Var
+    FunName
+  %% Externals
+    Type
+    Identifier
+    Literal
+    Stat
+
+  context-free syntax
+
+%%% Variables
+
+    "_" -> Expr {cons("Undefined")}
+
+%%% Variables
+
+    Name ":" Type -> Var {cons("Var"), selectable}
+
+    Var -> Expr
+
+%%% Literals
+
+    Literal -> Expr {cons("Literal"), selectable}
+
+%%% Tuple
+
+    "(" {Expr ","}* ")" -> Expr {cons("Tuple"), selectable}
+
+%%% Type Expressions
+
+    ":" Type -> Expr {cons("TypeExpr"), selectable}
+
+%%% Value Construction
+
+    Type "$" "{" {InitSpec ","}* "}" -> Expr {cons("Struct"), selectable, todo("With or without '$'?")}
+
+    Type "{" {InitSpec ","}* "}" -> Expr {cons("Struct"), selectable, todo("With or without '$'?")}
+
+    Identifier ":=" Expr -> InitSpec {cons("Field")}
+
+%%% Function Application
+
+    Fun "(" {Expr ","}* ")" -> Expr {cons("Apply"), selectable}
+
+    FunName -> Fun {cons("Fun")}
+
+    Name -> FunName
+
+	"\\external" "(" Identifier "," Name "," Name ")" -> Fun {cons("ExternalFun")}
+	
+	"\\f" "(" Name ")" -> Fun {cons("FunOf")}
+
+%%% Control-flow expressions
+
+    "if" Expr "then" Expr "else" Expr "end" -> Expr {cons("IfThenElseExpr"), selectable}
+    "{" Stat* "}" -> Expr {cons("BlockExpr"), selectable}
+
+
+lexical restrictions
+
+  "if"		-/- [A-Za-z\_\$0-9]
+  "then" 	-/- [A-Za-z\_\$0-9]
+  "else" 	-/- [A-Za-z\_\$0-9]
+  "end" 	-/- [A-Za-z\_\$0-9]
+  "_"	 	-/- [A-Za-z\_\$0-9]
+
+module Magnolia/Core/Statements
+  
+exports
+  sorts
+    BlockStat
+    Stat
+    LetClause
+    ProcName
+    Expr  %% External
+    Type  %% External
+    Identifier  %% External
+
+  context-free syntax
+
+    "{" Stat* "}" -> BlockStat {cons("Block")}
+
+    BlockStat -> Stat
+
+    ";" -> Stat {cons("Nop")}
+
+     
+    "if" Expr "then" Stat* "else" Stat* "end" -> Stat {prefer, cons("If")}
+
+    "while" Expr "do" Stat* "end" -> Stat {cons("While")}
+
+    "open" {Identifier ","}* "in" Stat* "end" -> Stat {cons("Open")}
+
+    "for" Identifier "in" Expr "do" Stat* "end" -> Stat {cons("For")}
+
+    "call" Proc "(" {Expr ","}* ")" ";" -> Stat {cons("Call")}
+
+    ProcName -> Proc {cons("Proc")}
+
+    "yield" Expr ";" -> Stat {cons("Yield")}
+
+    "break" ";" -> Stat {cons("Break")}
+
+    "return" ";" -> Stat {cons("Return")}
+
+    "return" Expr ";" -> Stat {cons("Return")}
+
+    Expr "=" Expr ";" -> Stat {cons("Assign")}
+
+    "let" LetClause* "in" Stat* "end" -> Stat {cons("Let")}
+
+    "var" Identifier ":" Type "=" Expr ";" -> LetClause {cons("VarDef")}
+
+    "assert" Expr AssertClause* ";" -> Stat {cons("Assert")}
+
+    "by" Expr -> AssertClause {cons("By")}
+
+    "by" "simplify" Expr -> AssertClause {cons("By")}
+
+    "qed" -> AssertClause {cons("QED")}
+
+	"\\external" "(" Identifier "," Name "," Name ")" -> Proc {cons("ExternalProc")}
+	
+	"\\p" "(" Name ")" -> Proc {cons("ProcOf")}
+
+lexical restrictions
+
+  "if"		-/- [A-Za-z\_\$0-9]
+  "then" 	-/- [A-Za-z\_\$0-9]
+  "else" 	-/- [A-Za-z\_\$0-9]
+  "end" 	-/- [A-Za-z\_\$0-9]
+  "while" 	-/- [A-Za-z\_\$0-9]
+  "do"		-/- [A-Za-z\_\$0-9]
+  "open" 	-/- [A-Za-z\_\$0-9]
+  "for" 	-/- [A-Za-z\_\$0-9]
+  "call" 	-/- [A-Za-z\_\$0-9]
+  "yield" 	-/- [A-Za-z\_\$0-9]
+  "break" 	-/- [A-Za-z\_\$0-9]
+  "return" 	-/- [A-Za-z\_\$0-9]
+  "let" 	-/- [A-Za-z\_\$0-9]
+  "in"		-/- [A-Za-z\_\$0-9]
+  "var" 	-/- [A-Za-z\_\$0-9]
+  "assert" 	-/- [A-Za-z\_\$0-9]
+  "by"		-/- [A-Za-z\_\$0-9]
+  "simplify" 	-/- [A-Za-z\_\$0-9]
+  "qed" 	-/- [A-Za-z\_\$0-9]
+
+module Magnolia/Core/Literals
+
+exports
+  sorts
+    Literal
+    DecNumeral
+    FloatNumeral
+    Exponent
+    StringPart
+    U16Char
+    U32Char
+    String
+
+  lexical syntax
+    DecNumeral -> Literal {cons("Int")}
+    FloatNumeral -> Literal {cons("Real")}
+    "\"" String "\"" -> StringLiteral {cons("String")}
+    StringLiteral -> Literal
+
+    [\+\-]? [0-9]+ -> DecNumeral
+    [\+\-]? "." [0-9]+ Exponent? -> FloatNumeral
+    [\+\-]? [0-9]+ "." [0-9]* Exponent? -> FloatNumeral
+    [\+\-]? [0-9]+ Exponent -> FloatNumeral
+    [eE] DecNumeral -> Exponent
+
+    ~[\"\\]				-> StringPart
+    "\\" [\\\"nrbfe]			-> StringPart
+    "\\x" [0-9a-fA-F] [0-9a-fA-F]	-> StringPart
+    "\\#" [0-9]+ ";"			-> StringPart
+    "\\#x" [0-9a-fA-F]+ ";"		-> StringPart
+    "\\&" [a-z]+ ";"			-> StringPart
+    U16Char -> StringPart
+    U32Char -> StringPart
+    "\\u" [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F] -> U16Char
+    "\\U" [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F] -> U32Char
+    StringPart*	-> String
+
+  lexical restrictions
+
+    DecNumeral -/- [0-9]
+    DecNumeral -/- [\.].[0-9]
+    FloatNumeral -/- [0-9\.eE]
+    Exponent -/- [0-9]
+    String -/- ~[\"]
+
+module Magnolia/Core/Types
+
+imports Magnolia/Core/Identifiers
+
+exports
+  sorts
+    Type
+
+  context-free syntax
+
+    Name -> Type {cons("Type")}
+
+    "(" ")"	-> Type {cons("NilType")}
+
+
+    Type "|" Type	-> Type {cons("AltType"), left}
+
+    Type "," ProdType	-> ProdType {cons("ProdType")}
+
+    Type		-> ProdType
+
+    "(" ProdType ")"	-> Type {cons("Dummy")}	
+
+	"struct" DeclBody -> Type {cons("Struct")}
+
+	"\\external" "(" Identifier "," Name "," Name ")" -> Type {cons("ExternalType")}
+
+hiddens
+  sorts ProdType
+
+module Magnolia/Core/Identifiers
+
+exports
+  sorts
+    Identifier
+    ID
+    NOID
+
+  context-free syntax
+
+    ID -> Identifier {cons("Name")}
+
+	ID -> Name {cons("Name")}
+	
+	Name "." ID -> Name {cons("QName")}
+	
+  lexical syntax
+
+    [A-Za-z][A-Za-z\_\$\#0-9]* -> ID
+
+    "_" -> NOID
+    "?" -> NOID
+
+    NOID -> ID
+
+%%    "if" -> ID {reject}
+%%    "in" -> ID {reject}
+%%    "end" -> ID {reject}
+%%    "open" -> ID {reject}
+%%    "else" -> ID {reject}
+%%    "while" -> ID {reject}
+%%    "var" -> ID {reject}
+%%    "class" -> ID {reject}
+%%    "type" -> ID {reject}
+%%    "module" -> ID {reject}
+%%    "imports" -> ID {reject}
+%%    "requires" -> ID {reject}
+%%    "yield" -> ID {reject}
+%%    "return" -> ID {reject}
+%%    "break" -> ID {reject}
+%%    "true" -> ID {reject}
+%%    "false" -> ID {reject}
+
+  lexical restrictions
+
+    ID -/- [A-Za-z\_0-9]
+    "_" -/- [A-Za-z\_0-9]
+    "?" -/- [A-Za-z\_0-9]
+
+module Magnolia/Root/Layout
+
+hiddens
+  sorts
+    ASTERISK
+
+exports
+  lexical syntax
+
+    [\ \t\n\r] -> LAYOUT
+    "//" ~[\n]* [\n] -> Comment {category("Comment")}
+
+
+    [\*] -> ASTERISK
+    "/*" ( ~[\*] | ASTERISK )* "*/" -> Comment {category("Comment")}
+
+    Comment -> LAYOUT
+
+  context-free restrictions
+
+    LAYOUT? -/- [\ \t\n\r] | [\/] . [\/\*]
+
+  lexical restrictions
+
+    ASTERISK -/- [\/]
+
+module Magnolia/Root/Program
+
+exports
+  sorts
+    Program
+    ModuleHead
+    ModuleClause
+    TopDecl
+    Decl
+    Identifier
+
+  context-free syntax
+
+    ModuleHead TopDecl* -> Program {cons("MagnoliaTree")}
+
+    "module" Name ModuleClause* ";" -> ModuleHead {cons("ModuleHead")}
+
+    ";" -> TopDecl {cons("Nop")}
+
+module Magnolia/Core
+
+imports 
+  Magnolia/Root/Program
+  Magnolia/Root/Layout
+  Magnolia/Core/Identifiers
+  Magnolia/Core/Types
+  Magnolia/Core/Literals
+  Magnolia/Core/Statements
+  Magnolia/Core/Expressions
+  Magnolia/Core/Data
+  Magnolia/Core/Declarations
+  Magnolia/Core/Institutions
+  
+
+module Magnolia/Magnolia
+exports
+imports Magnolia/Core Magnolia/BaseExt
+
+hiddens
+	context-free start-symbols
+		Program
+
+exports
+context-free syntax
+	 Expr "."  Identifier "="  Expr";" -> Stat	{cons("UserSyntax0")}
+	 Identifier "["  {Expr ","}+ "]" "="  Expr";" -> Stat	{cons("UserSyntax1")}
+	 Name -> Expr	{cons("UserSyntax2")}
+	"if"  Expr "then"  Stat* "end" -> Stat	{cons("UserSyntax3")}
+	"if""(" Expr")" "{"  Stat* "}" -> Stat	{cons("UserSyntax4")}
+	"if""(" Expr")" "{"  Stat* "}" "else" "{"  Stat* "}" -> Stat	{cons("UserSyntax5")}
+lexical restrictions
+	"then" -/- [A-Za-z\_\$0-9]
+	"if" -/- [A-Za-z\_\$0-9]
+	"end" -/- [A-Za-z\_\$0-9]
+	"else" -/- [A-Za-z\_\$0-9]
