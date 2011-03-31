@@ -4,5 +4,4 @@ Bundle-Name: MetaXa
 Bundle-SymbolicName: MetaXa;singleton:=true
 Bundle-Version: 0.1.12
 Require-Bundle: rascal,
- rascal_eclipse,
- rascal_plugin
+ rascal_eclipse
