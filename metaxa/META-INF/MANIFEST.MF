@@ -1,7 +1,9 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: MetaXa
-Bundle-SymbolicName: MetaXa;singleton:=true
-Bundle-Version: 0.1.12
-Require-Bundle: rascal,
- rascal_eclipse
+Bundle-SymbolicName: MetaXa
+Bundle-Version: 0.2.0
+Require-Bundle: org.eclipse.imp.pdb.values,
+ rascal
+Bundle-RequiredExecutionEnvironment: JavaSE-1.7
+
