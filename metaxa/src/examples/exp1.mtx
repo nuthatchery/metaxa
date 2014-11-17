@@ -1,0 +1,15 @@
+sort Exp {
+
+	construct Exp(Int literal) {	
+		syntax {
+			<literal>
+		}
+	}
+	
+	construct Add(Exp e1, Exp e2) {
+		syntax {
+			<e1> + <e2>
+		}	
+	}
+
+}
