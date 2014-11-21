@@ -21,37 +21,39 @@ data Type
 	= Type(str name)
 	| Type(str name, list[Type] params)
 	;
-	
 
 public DefEnv checkModule((Module)`<Decl* decls>`) {
 	dEnv = DefEnv({});
 	nEnv = NameEnv("", ());
 	
 	for(d <- decls) {
-		env = checkDecl(d, nEnv, dEnv);
+		dEnv = checkDecl(d, nEnv, dEnv);
 	}
 	
-	return env;
+	return dEnv;
+	
 }
 
 public DefEnv checkDecl((Decl)`sort <Id name> { <Decl* decls> }`, NameEnv nEnv, DefEnv dEnv) {
+  
 }
 
 public void printSyntaxDefs(Tree m) {
 	//for(/SyntaxBody b <- m) {
-		visit(m) {
-			case (SyntaxBody)`{ <SyntaxToken* toks> }`: {
-				for(t <- toks) {
-					print("<getLabel(t)>[");
-					for(u <- t.args)
-						print("(<u>)");
-					print("]");
-				}
-				println();
+	visit(m) {
+		case (SyntaxBody)`{ <SyntaxToken* toks> }`: {
+			for(t <- toks) {
+				print("<getLabel(t)>[");
+				for(u <- t.args)
+					print("(<u>)");
+				print("]");
 			}
-			case TypeExpr t:
-				println("<checkType(t, Env(()))[0]>");
+			println();
 		}
+		
+		case TypeExpr t:                              
+			println( "<checkType( t, NameEnv("", ()), DefEnv({}) )>" );
+	}
 	//}
 }
 
@@ -66,18 +68,17 @@ public str getLabel(Tree t) {
 		println([<t>]);
 }
 
-
-tuple[Type, Env] checkType(TypeExpr t, NameEnv nEnv, DefEnv dEnv) {
+tuple[Type, DefEnv] checkType(TypeExpr t, NameEnv nEnv, DefEnv dEnv) {
 	switch(t) {
-		case (TypeExpr)`<Id n>`:
-			return <Type(unparse(n)), env>;
+		case (TypeExpr)`<Id n>`:     
+			return <Type(unparse(n)), dEnv>; 
 		case (TypeExpr)`<Id n>[<{TypeExpr ","}* params>]`: {
 			list[Type] ps = [];
 			for(p <- params) {
-				<c, env> = checkType(p, env);
+				<c, env> = checkType(p, nEnv, dEnv);
 				ps += c;
 			}
-			return <Type(unparse(n), ps), env>;
+			return <Type(unparse(n), ps), dEnv>;
 		}
 	}
 }
