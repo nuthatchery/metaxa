@@ -1,52 +1,53 @@
 sort Program {
-}
 
-sort Package {
-	// start symbol;
-	
-	construct MagnoliaTree(PackageHead head, list[TopDecl] decls) { 
-		syntax {
-			<head>
+	sort Package {
+		// start symbol;
 		
-			<decls>
-		}
+		construct MagnoliaTree(PackageHead head, list[TopDecl] decls) { 
+			syntax {
+				<head>
+			
+				<decls>
+			}
+		
+			syntax {
+				<TopExpr+>
+			}
+		
+			syntax {	<decls>	} <-> {
+				package _;
+				<decls>
+			}
+		};
 	
-		syntax {
-			<TopExpr+>
-		}
 	
-		syntax {	<decls>	} <-> {
-			package _;
-			<decls>
+		sort PackageHead {
+			// foldable;
+			
+			construct PackageHead(QualifiedNameIdentifier name, list[PackageClause] clauses) {
+				syntax {
+					package <name>
+					  <clauses>;
+				}
+				
+				deprecated syntax {
+					module <name>
+					  <clauses>;
+				}
+				<-> {
+					package <name>
+					  <clauses>;
+				}
+				
+				sugar syntax {
+					<clauses>;
+				}
+				<-> {
+					package _
+						<clauses>;
+				}
+			}
 		}
 	};
 
-
-	sort PackageHead {
-		// foldable;
-		
-		construct PackageHead(QualifiedNameIdentifier name, list[PackageClause] clauses) {
-			syntax {
-				package <name>
-				  <clauses>;
-			}
-			
-			deprecated syntax {
-				module <name>
-				  <clauses>;
-			}
-			<-> {
-				package <name>
-				  <clauses>;
-			}
-			
-			sugar syntax {
-				<clauses>;
-			}
-			<-> {
-				package _
-					<clauses>;
-			}
-		}
-	}
-};
+}
