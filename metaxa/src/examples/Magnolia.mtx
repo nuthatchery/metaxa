@@ -18,7 +18,7 @@ sort Program {
 				package _;
 				<decls>
 			}
-		};
+		}
 	
 	
 		sort PackageHead {
@@ -48,6 +48,6 @@ sort Program {
 				}
 			}
 		}
-	};
+	}
 
 }
