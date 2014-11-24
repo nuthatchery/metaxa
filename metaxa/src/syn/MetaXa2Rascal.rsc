@@ -16,14 +16,14 @@ import IO;
 /*
 A scope of declarations
 */
-alias Scope = rel[str, str];
+alias Scope = map[str, str];
 
 /*
 The different scopes in a module.
 
 Each member of the list should correspond to the scope of a "sort", where each sort is a start syntax production.
 */
-// this funciton is at least useful for testing scopeOfDecl at the console, by parsing and passing in one of the example grammar definitions
+// at least useful for testing scopeOfDecl at the console, by parsing and passing in one of the example grammar definitions
 list[Scope] allScopes( (Module)`<Decl* decls>` ) {
 	sc = [];
 	for ( d <- decls ) {
@@ -37,7 +37,7 @@ Scope of a declaration.
 */
 // TODO this function has almost the same structure as the previous "case function" in this module; use some higher-order function?
 Scope scopeOfDecl( (Decl)`sort <Id id> { <Decl* ds> }` ) {
-	sc = {};
+	sc = ();
 	for ( p <- ds ) {
 		sc += scopeOfDecl(p);
 	}
@@ -45,14 +45,17 @@ Scope scopeOfDecl( (Decl)`sort <Id id> { <Decl* ds> }` ) {
 }
 
 Scope scopeOfDecl( (Decl)`construct <Id id> ( <{ParamDecl ","}* pds> ) { <Def* defs> }` ) {
-	sc = {};
+	sc = ();
 	for ( p <- pds ) {
 		switch (p) {
 		case (ParamDecl)`<TypeExpr te> <Id id>`: 
-			sc += {<unparse(te), unparse(id)>};
+			sc += (unparse(id) : unparse(te));
 		default:
 			throw "should never happen";
 		}
 	}
 	return sc;
 }
+
+
+
