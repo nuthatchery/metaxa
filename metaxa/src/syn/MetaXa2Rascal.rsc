@@ -4,6 +4,7 @@ Generate a rascal grammar from a metaxa description.
 module syn::MetaXa2Rascal
 
 import syn::MetaXa;
+import syn::AST;
 
 // AST for rascal grammar
 import Grammar;
@@ -17,6 +18,29 @@ import IO;
 A scope of declarations
 */
 alias Scope = map[str, str];
+
+/*
+The symbols representing the start productions.
+*/
+set[Symbol] starts( AST \mod ) {
+	// TODO find out how to easily makes decls into a list of Decl. Use abstract syntax?
+	switch (\mod) {
+	case Mod(decls):
+		return toSet( mapper(decls, id) );
+	}
+}
+
+/*
+get the id of a declaration.
+*/
+Symbol id( SortDecl(str id, list[Decl] _) ) {
+	return sort(id);
+}
+
+Symbol id( ConstructDecl(str id, list[ParamDecl] _, list[Def] _) ) {
+	return sort(id);
+}
+
 
 /*
 The different scopes in a module.
