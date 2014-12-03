@@ -35,6 +35,9 @@ list[Scope] allScopes( (Module)`<Decl* decls>` ) {
 /*
 Scope of a declaration. 
 */
+// TODO: make a function that returns scope for individiual constructs.
+// The scopeOfDecl function will return the scope of a whole decl, which might span multiple constructs,
+// and productions defined in one construct-scope should not be visible in other construct-scopes.
 // TODO this function has almost the same structure as the previous "case function" in this module; use some higher-order function?
 Scope scopeOfDecl( (Decl)`sort <Id id> { <Decl* ds> }` ) {
 	sc = ();
