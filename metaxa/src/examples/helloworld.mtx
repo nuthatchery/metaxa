@@ -1,0 +1,5 @@
+construct Hello() { // The language that only accepts the string "helloworld".
+	syntax {
+		helloworld
+	}
+}
