@@ -1,5 +1,5 @@
 /*
-Use `implode(#AST, p)` - where `p` is a parse tree - to get the corresponding AST.
+Use `implode(#AST_, p)` - where `p` is a parse tree, and `AST_` is the AST type - to get the corresponding AST.
 */
 module syn::AST
 
@@ -7,34 +7,36 @@ import syn::MetaXa;
 import syn::AST;
 import ParseTree;
 
-data AST 
-	= Mod(list[Decl])
+// AST types are suffixed with 'AST' to be sure that name-clashing with the syntax productions is avoided.
+public data ASTModule
+	= Mod(list[ASTDecl])
 	;
 	
-data Decl
-	= SortDecl(str id, list[Decl] decls)
-	| ConstructDecl(str id, list[ParamDecl] pds, list[Def] defs)
+public data ASTDecl
+	= SortDecl(str id, list[ASTDecl] decls)
+	| ConstructDecl(str id, list[ASTParamDecl] pds, list[ASTDef] defs)
 	| Nod()
 	;
 	
-data Def =
-	SyntaxDef(list[SyntaxModifier] mods, SyntaxBody sb)
+public data ASTDef =
+	SyntaxDef(list[ASTSyntaxModifier] mods, ASTSyntaxBody sb)
 	// TODO SugarDef
 	;
 
-data ParamDecl 
+public data ASTParamDecl 
+            // TODO TypeExpr ?
 	= Param(TypeExpr te, str id);
 	
-data SyntaxModifier
+public data ASTSyntaxModifier
 	= Sugar()
 	| Deprecated()
 	;
 	
-data SyntaxBody
-	= SyntaxTokens(list[SyntaxToken] sts)
+public data ASTSyntaxBody
+	= SyntaxTokens(list[ASTSyntaxToken] sts)
 	;
 
-data SyntaxToken 
+public data ASTSyntaxToken 
 	= Literal(str l)
 	// TODO the rest of 'em
 	;
