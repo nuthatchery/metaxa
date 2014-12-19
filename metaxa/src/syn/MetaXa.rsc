@@ -1,7 +1,6 @@
 module syn::MetaXa
 
-
-start syntax Module = Module: Decl*;
+start syntax Module = Mod: Decl*;
 
 syntax Decl
 	= SortDecl: "sort" Id "{" Decl* "}"
