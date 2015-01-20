@@ -46,10 +46,8 @@ GrammarDefinition grammarDefinition( ASTModule m ) {
 
 GrammarModule grammarModule( ASTModule m ) {
 	name = "unknown"; // TODO fix?
-	set[str] imports = {}; // TODO fix?
-	// TODO weird error message for the following, due to "type inference". 
-	// Easy to fix (put in type declaration, if I recall correctly), but I'm curious as to why I get the error to begin with.
-	exten = {}; // TODO fix?
+	set[str] imports = {}; // TODO fix/change?
+	exten = {}; // TODO fix/change?
 	gram = declsToGrammar(m);
 	return \module(name, imports, exten, gram);
 }
@@ -68,19 +66,10 @@ Grammar declsToGrammar( ASTModule m: Mod(decls) ) {
 The symbols representing the start productions.
 */
 set[Symbol] starts( ASTModule \mod ) {
-	switch (\mod) {
-		
+	switch (\mod) {	
 	case Mod(decls): {
-		// TODO bug here
-		// The error will be, for some reason, reported in the List module, namely at the line of the `mapper` implementation.
-		//m = mapper(decls, id);
-		
-		// Alternative to the above.
-		// we write out the definition/implementation of `mapper` (copy pasted from the List module),
-		// so that we get an error message in this module rather than in the List module. 
-		list[Symbol] m2 = [id(d) | ASTDecl d <- decls];
-		
-		return toSet( m2 );
+		m = mapper(decls, id);		
+		return toSet( m );
 	}
 	}
 }
@@ -125,15 +114,15 @@ alt(...) = syntax {...} | syntax {...} | syntax {...} | ...
 */
 Symbol construct( ConstructDecl(id, pds, defs) ) {
 	all_defs = mapper(defs, def);
-	return \alt( toSet(defs) );
+	return \alt( toSet(all_defs) ); // todo: should be all_defs !
 }
 
-// TODO consider the syntax modifiers?
-Symbol def( SyntaxDef(mods, SyntaxBody sb) ) 
+Symbol def( SyntaxDef(mods, sb) )
 	= symbol(sb);
 
-Symbol symbol( SyntaxBody sb )
-	= \seq( symbol(sb) ); // see: http://tutor.rascal-mpl.org/Rascal/Rascal.html#/Rascal/Libraries/Prelude/ParseTree/Symbol/Symbol.html
+
+Symbol symbol( SyntaxTokens(sts) )
+	= \seq( sts ); // see: http://tutor.rascal-mpl.org/Rascal/Rascal.html#/Rascal/Libraries/Prelude/ParseTree/Symbol/Symbol.html
 
 /*
 Get the list of symbols in a SyntaxBody
