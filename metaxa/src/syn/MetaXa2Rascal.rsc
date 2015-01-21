@@ -114,7 +114,7 @@ alt(...) = syntax {...} | syntax {...} | syntax {...} | ...
 */
 Symbol construct( ConstructDecl(id, pds, defs) ) {
 	all_defs = mapper(defs, def);
-	return \alt( toSet(all_defs) ); // todo: should be all_defs !
+	return \alt( toSet(all_defs) );
 }
 
 Symbol def( SyntaxDef(mods, sb) )
@@ -134,7 +134,6 @@ syntax { first <prod> then }
 Should return three symbols; one representing the literal "first", then a symbol representing the production prod,
 and then then the symbol representing the literal "then".
 */
-// TODO error: "Undeclared type: Product". But why?
 list[Symbol] symbol( SyntaxTokens(sts) )
 	= mapper( sts, syntaxToken );
 
