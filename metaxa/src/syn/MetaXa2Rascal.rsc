@@ -198,3 +198,19 @@ Scope scopeOfDecl( (Decl)`construct <Id id> ( <{ParamDecl ","}* pds> ) { <Def* d
 	}
 	return sc;
 }
+
+/*****
+
+TESTS
+
+*****/
+
+/*
+We should be able to parse the empty.mtx file and convert it to a rascal syntax module.
+This test does not test that the output itself is correct.
+*/
+test bool canConvertEmpty() {
+	p = parse(#Module, |file:///home/kristoffer/git/metaxa/metaxa/src/examples/empty.mtx|);
+	i = implode(#ASTModule, p);
+	metaxa2rascal(i);
+}
