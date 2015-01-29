@@ -24,8 +24,32 @@ We leverage the functions from the AST GRAMMAR section to generate a (textual) r
 
 ********/
 
-public str metaxa2rascal( ASTModule m )
-	= definition2rascal( grammarDefinition(m) );
+public str metaxa2rascal( ASTModule m ) {
+	gd = grammarDefClean( m );
+	return definition2rascal( gd );
+}
+
+/*
+Convert a ASTModule to a GrammarDefinition, and clean up this representation.
+
+"Clean up" in the sense that the data type is simplified; certain patterns in the data structure is converted to a
+simpler, equivalent pattern.
+
+This may make further processing of the data type more efficient, for example converting the GrammarDefinition to a textual rascal module.
+It might also avoid certain patterns in the data structure that might lead to an invalid (won't be parsed) textual rascal module,
+as we have experienced before.
+*/
+// NOTE maybe the grammarDefinition(...) function should take care to not generate troublesome nodes (such as \alt with only one alternative)
+// to begin with, instead of processing them out in this function? This function could also be used as a test to assert that the 
+// grammarDefinition(...) function upholds this responsibility. 
+GrammarDefinition grammarDefClean( ASTModule m ) {
+	gd = grammarDefinition(m);
+	gd = visit(gd) {
+		case \alt({x}) => x
+		case \prod(s, [seq([])], as) => \prod(s, [], as)
+	}
+	return gd;
+}
 
 /********
 
