@@ -1,3 +1,7 @@
 ** <2015-01-22 Thu>
 
 In a recent commit (commit ID 4a465d98576a08b9b2fb6ca4773c639bd88317d3) we were able to get the translation from a metaxa description to a (textual) rascal syntax module kind of work for a very simple language (a language that accepts only empty strings). "Kind of", since the output is actually kind of wrong, for some reason: there are some parenthesis in the wrong place which makes it so that the module can't be parsed as a rascal module. This is weird since the textual rascal module was built from an AST representation of a rascal syntax module, and I can't see how one can really make an /invalid/ rascal module in that way.
+
+** <2015-01-29 Thu>
+
+The metaxa to rascal converter now outputs a correct textual rascal syntax description for "the empty grammar".
