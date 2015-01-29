@@ -224,7 +224,9 @@ Scope scopeOfDecl( (Decl)`construct <Id id> ( <{ParamDecl ","}* pds> ) { <Def* d
 
 /*****
 
-TESTS
+REGRESSSION TESTS
+
+These tests should work in any new commits; if they don't then a new bug might have been introduced.
 
 *****/
 
@@ -236,4 +238,5 @@ test bool canConvertEmpty() {
 	p = parse(#Module, |file:///home/kristoffer/git/metaxa/metaxa/src/examples/empty.mtx|);
 	i = implode(#ASTModule, p);
 	metaxa2rascal(i);
+	return true;
 }
