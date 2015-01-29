@@ -224,6 +224,22 @@ Scope scopeOfDecl( (Decl)`construct <Id id> ( <{ParamDecl ","}* pds> ) { <Def* d
 
 /*****
 
+UNIT TESTS
+
+These tests may be used for work-in-progress stuff. That is, tests that don't necessarily work but should once some
+things have been implemented, and/or bugs have been fixed. 
+
+*****/
+
+test bool canConvertHelloworld() {
+	p = parse(#Module, |file:///home/kristoffer/git/metaxa/metaxa/src/examples/helloworld.mtx|);
+	i = implode(#ASTModule, p);
+	metaxa2rascal(i);
+	return true;
+}
+
+/*****
+
 REGRESSSION TESTS
 
 These tests should work in any new commits; if they don't then a new bug might have been introduced.
