@@ -146,7 +146,7 @@ Symbol def( SyntaxDef(mods, sb) )
 
 
 Symbol symbol( SyntaxTokens(sts) )
-	= \seq( sts ); // see: http://tutor.rascal-mpl.org/Rascal/Rascal.html#/Rascal/Libraries/Prelude/ParseTree/Symbol/Symbol.html
+	= \seq( symbol(sts) ); // see: http://tutor.rascal-mpl.org/Rascal/Rascal.html#/Rascal/Libraries/Prelude/ParseTree/Symbol/Symbol.html
 
 /*
 Get the list of symbols in a SyntaxBody
@@ -158,7 +158,7 @@ syntax { first <prod> then }
 Should return three symbols; one representing the literal "first", then a symbol representing the production prod,
 and then then the symbol representing the literal "then".
 */
-list[Symbol] symbol( SyntaxTokens(sts) )
+list[Symbol] symbol( list[ASTSyntaxToken] sts )
 	= mapper( sts, syntaxToken );
 
 /*
