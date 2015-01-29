@@ -40,8 +40,8 @@ It might also avoid certain patterns in the data structure that might lead to an
 as we have experienced before.
 */
 // NOTE maybe the grammarDefinition(...) function should take care to not generate troublesome nodes (such as \alt with only one alternative)
-// to begin with, instead of processing them out in this function? This function could also be used as a test to assert that the 
-// grammarDefinition(...) function upholds this responsibility. 
+// to begin with, instead of processing them out in this function? This function could also be used as a test to assert that the
+// grammarDefinition(...) function upholds this responsibility.
 GrammarDefinition grammarDefClean( ASTModule m ) {
 	gd = grammarDefinition(m);
 	gd = visit(gd) {
@@ -90,9 +90,9 @@ Grammar declsToGrammar( ASTModule m: Mod(decls) ) {
 The symbols representing the start productions.
 */
 set[Symbol] starts( ASTModule \mod ) {
-	switch (\mod) {	
+	switch (\mod) {
 	case Mod(decls): {
-		m = mapper(decls, id);		
+		m = mapper(decls, id);
 		return toSet( m );
 	}
 	}
@@ -134,7 +134,7 @@ construct(...) {
 
 And we make this into this \alt, more or less:
 
-alt(...) = syntax {...} | syntax {...} | syntax {...} | ... 
+alt(...) = syntax {...} | syntax {...} | syntax {...} | ...
 */
 Symbol construct( ConstructDecl(id, pds, defs) ) {
 	all_defs = mapper(defs, def);
@@ -195,7 +195,7 @@ list[Scope] allScopes( (Module)`<Decl* decls>` ) {
 }
 
 /*
-Scope of a declaration. 
+Scope of a declaration.
 */
 // TODO: make a function that returns scope for individiual constructs.
 // The scopeOfDecl function will return the scope of a whole decl, which might span multiple constructs,
@@ -213,7 +213,7 @@ Scope scopeOfDecl( (Decl)`construct <Id id> ( <{ParamDecl ","}* pds> ) { <Def* d
 	sc = ();
 	for ( p <- pds ) {
 		switch (p) {
-		case (ParamDecl)`<TypeExpr te> <Id id>`: 
+		case (ParamDecl)`<TypeExpr te> <Id id>`:
 			sc += (unparse(id) : unparse(te));
 		default:
 			throw "should never happen";
@@ -227,7 +227,7 @@ Scope scopeOfDecl( (Decl)`construct <Id id> ( <{ParamDecl ","}* pds> ) { <Def* d
 UNIT TESTS
 
 These tests may be used for work-in-progress stuff. That is, tests that don't necessarily work but should once some
-things have been implemented, and/or bugs have been fixed. 
+things have been implemented, and/or bugs have been fixed.
 
 *****/
 
