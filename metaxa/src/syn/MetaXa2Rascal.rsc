@@ -232,12 +232,7 @@ things have been implemented, and/or bugs have been fixed.
 
 *****/
 
-test bool canConvertHelloworld() {
-	p = parse(#Module, |file:///home/kristoffer/git/metaxa/metaxa/src/examples/helloworld.mtx|);
-	i = implode(#ASTModule, p);
-	metaxa2rascal(i);
-	return true;
-}
+// ...
 
 /*****
 
@@ -253,6 +248,13 @@ This test does not test that the output itself is correct.
 */
 test bool canConvertEmpty() {
 	p = parse(#Module, |file:///home/kristoffer/git/metaxa/metaxa/src/examples/empty.mtx|);
+	i = implode(#ASTModule, p);
+	metaxa2rascal(i);
+	return true;
+}
+
+test bool canConvertHelloworld() {
+	p = parse(#Module, |file:///home/kristoffer/git/metaxa/metaxa/src/examples/helloworld.mtx|);
 	i = implode(#ASTModule, p);
 	metaxa2rascal(i);
 	return true;
