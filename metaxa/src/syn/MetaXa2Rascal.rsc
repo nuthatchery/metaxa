@@ -259,3 +259,10 @@ test bool canConvertHelloworld() {
 	metaxa2rascal(i);
 	return true;
 }
+
+test bool canConvertConstantAlternatives() {
+	p = parse(#Module, |file:///home/kristoffer/git/metaxa/metaxa/src/examples/constant_alternatives.mtx|);
+	i = implode(#ASTModule, p);
+	metaxa2rascal(i);
+	return true;
+}
