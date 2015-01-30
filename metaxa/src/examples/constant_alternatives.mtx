@@ -1,0 +1,11 @@
+construct Alts() {
+	syntax {
+	option_1
+	}
+	syntax {
+	option_2
+	}
+	syntax {
+	option_3
+	}
+}
