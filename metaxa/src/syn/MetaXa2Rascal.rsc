@@ -46,6 +46,7 @@ GrammarDefinition grammarDefClean( ASTModule m ) {
 	gd = grammarDefinition(m);
 	gd = visit(gd) {
 		case \alt({x}) => x
+		case \seq([x]) => x
 		case \prod(s, [seq([])], as) => \prod(s, [], as)
 	}
 	return gd;
