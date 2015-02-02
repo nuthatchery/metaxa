@@ -90,13 +90,9 @@ Grammar declsToGrammar( ASTModule m: Mod(decls) ) {
 /*
 The symbols representing the start productions.
 */
-set[Symbol] starts( ASTModule \mod ) {
-	switch (\mod) {
-	case Mod(decls): {
-		m = mapper(decls, id);
-		return toSet( m );
-	}
-	}
+set[Symbol] starts( ASTModule _: Mod(decls) ) {
+	m = mapper(decls, id);
+	return toSet( m );
 }
 
 /*
