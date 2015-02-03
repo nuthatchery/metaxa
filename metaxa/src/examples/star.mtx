@@ -1,0 +1,5 @@
+construct Star(list[str] rep) {
+	syntax {
+		<rep*>
+	}
+}
