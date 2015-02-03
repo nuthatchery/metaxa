@@ -24,8 +24,15 @@ public data ASTDef =
 	;
 
 public data ASTParamDecl 
-            // TODO TypeExpr ?
-	= Param(TypeExpr te, str id);
+	= Param(ASTTypeExpr te, str id)
+	;
+
+// TODO finish	
+public data ASTTypeExpr 
+	= Type(str id)
+	| Parameterized(str id, list[ASTTypeExpr] te)
+	;
+
 	
 public data ASTSyntaxModifier
 	= Sugar()
@@ -38,5 +45,12 @@ public data ASTSyntaxBody
 
 public data ASTSyntaxToken 
 	= Literal(str l)
-	// TODO the rest of 'em
+	| TypeOrVar(ASTSortExpr)
+	;
+	
+public data ASTSortExpr 
+	= Sort(str id)
+	| Star(ASTSortExpr se)
+	| Plus(ASTSortExpr se)
+	// TODO implement the rest
 	;
