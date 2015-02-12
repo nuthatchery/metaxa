@@ -1,5 +1,6 @@
-construct Star(list[str] rep) {
+construct Star() {
 	syntax {
-		<rep*>
+		<Id*>
 	}
+	lexical Id = [a-zA-Z_] !<< [a-zA-Z_] [a-zA-Z_0-9]* !>> [a-zA-Z_0-9];
 }

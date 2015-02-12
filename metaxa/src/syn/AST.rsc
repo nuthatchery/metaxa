@@ -15,12 +15,18 @@ public data ASTModule
 public data ASTDecl
 	= SortDecl(str id, list[ASTDecl] decls)
 	| ConstructDecl(str id, list[ASTParamDecl] pds, list[ASTDef] defs)
+	| L(ASTLex lex)
 	| Nod()
 	;
-	
-public data ASTDef =
-	SyntaxDef(list[ASTSyntaxModifier] mods, ASTSyntaxBody sb)
+
+public data ASTDef
+	= SyntaxDef(list[ASTSyntaxModifier] mods, ASTSyntaxBody sb)
+	| L(ASTLex lex)
 	// TODO SugarDef
+	;
+
+public data ASTLex
+	= L(str id, list[ASTSortExpr] ses)
 	;
 
 public data ASTParamDecl 
@@ -52,5 +58,19 @@ public data ASTSortExpr
 	= Sort(str id)
 	| Star(ASTSortExpr se)
 	| Plus(ASTSortExpr se)
+	| CharacterClass(ASTClass c)
+	| Follow(ASTSortExpr, ASTSortExpr)
+	| NotFollow(ASTSortExpr, ASTSortExpr)
+	| Precede(ASTSortExpr, ASTSortExpr)
+	| NotPrecede(ASTSortExpr, ASTSortExpr)
 	// TODO implement the rest
+	;
+
+public data ASTClass
+	= SimpleCharclass(list[ASTRange] ranges)
+	;
+
+public data ASTRange
+	= FromTo(str from, str to)
+	| Character(str c)
 	;
