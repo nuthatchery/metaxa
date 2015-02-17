@@ -15,18 +15,17 @@ public data ASTModule
 public data ASTDecl
 	= SortDecl(str id, list[ASTDecl] decls)
 	| ConstructDecl(str id, list[ASTParamDecl] pds, list[ASTDef] defs)
-	| L(ASTLex lex)
+	| Lex(ASTLex lex)
 	| Nod()
 	;
 
 public data ASTDef
 	= SyntaxDef(list[ASTSyntaxModifier] mods, ASTSyntaxBody sb)
-	| L(ASTLex lex)
 	// TODO SugarDef
 	;
 
 public data ASTLex
-	= L(str id, list[ASTSortExpr] ses)
+	= L(str id, list[ASTSortExpr] ses) // NOTE can also be represented as `str`. Then you don't have to jump through any unnecessary AST hoops and can just translate directly to rascal source form.
 	;
 
 public data ASTParamDecl 
@@ -51,7 +50,7 @@ public data ASTSyntaxBody
 
 public data ASTSyntaxToken 
 	= Literal(str l)
-	| TypeOrVar(ASTSortExpr)
+	| TypeOrVar(ASTSortExpr se)
 	;
 	
 public data ASTSortExpr 
@@ -59,10 +58,10 @@ public data ASTSortExpr
 	| Star(ASTSortExpr se)
 	| Plus(ASTSortExpr se)
 	| CharacterClass(ASTClass c)
-	| Follow(ASTSortExpr, ASTSortExpr)
-	| NotFollow(ASTSortExpr, ASTSortExpr)
-	| Precede(ASTSortExpr, ASTSortExpr)
-	| NotPrecede(ASTSortExpr, ASTSortExpr)
+	| Follow(ASTSortExpr se1, ASTSortExpr se2)
+	| NotFollow(ASTSortExpr se1, ASTSortExpr se2)
+	| Precede(ASTSortExpr se1, ASTSortExpr se2)
+	| NotPrecede(ASTSortExpr se1, ASTSortExpr se2)
 	// TODO implement the rest
 	;
 

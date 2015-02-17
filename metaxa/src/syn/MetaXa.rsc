@@ -10,14 +10,13 @@ start syntax Module = Mod: Decl*;
 syntax Decl
 	= SortDecl: "sort" Id "{" Decl* "}"
 	| ConstructDecl: "construct" Id "(" {ParamDecl ","}* ")" "{" Def* "}"
-	| L: Lex
+	| Lex: Lex
 	| Nod: ";"
 	;
 
 syntax Def
 	= SyntaxDef: SyntaxModifier* "syntax" SyntaxBody
 	| SugarDef: SyntaxModifier* "syntax" SyntaxBody SugarOp SyntaxBody
-	| L: Lex
 	| Nod: ";"
 	;
 
