@@ -12,7 +12,7 @@ import Grammar;
 // Convert AST rascal grammar to rascal syntax definition (source code)
 import lang::rascal::format::Grammar;
 
-
+import String;
 import List;
 import IO;
 
@@ -82,10 +82,15 @@ Return the metaxa description as a Grammar
 */
 Grammar declsToGrammar( ASTModule m: Mod(decls) ) {
 	st = starts(m);
-	// note: important to use `toMapUnique` rather than `toMap`, here
-	map[Symbol, Production] rules = toMapUnique( mapper(decls, declToProdTuple) );
+	map[Symbol, Production] rules = concatMaps( mapper(decls, declToProdTuple) );
 	return \grammar(st, rules);
 }
+
+// TODO generalize types of the map?
+// TODO put precondition that no two maps in the list contain the same key?
+map[Symbol, Production] concatMaps(list[ map[Symbol, Production] ] l)
+	  // This expression is a Reducer
+	= ( () | it + e | map[Symbol, Production] e <- l);
 
 /*
 The symbols representing the start productions.
@@ -101,11 +106,25 @@ Return the Production of a declaration, and its name.
 Convenient for helping in making a Grammar, since one of its parameters is a Map with
 Symbol (name) as the keys and Production as the values.
 */
-tuple[Symbol, Production] declToProdTuple( ASTDecl c ) {
+map[Symbol, Production] declToProdTuple( ASTDecl c: ConstructDecl(_, _, _) ) {
 	switch (constructToProd(c)) {
 	case p:\prod(name, symbols, attr):
-		return <name, p>;
+		return (name : p);
 	}
+}
+
+map[Symbol, Production] declToProdTuple( ASTDecl c: Lex(_) ) {
+	switch (lexToProd(c)) {
+	case p:\prod(name, symbols, _):
+		return (name : p);
+	}
+}
+
+map[Symbol, Production] declToProdTuple( ASTDecl c: SortDecl(str id, list[ASTDecl] decls) ) {
+	// TODO assumes that `decls` contains no `sort` declarations: needs to be fixed.
+	// TODO does not "preserve" the scope of the declarations: declarations with the same name declared in different scopes *will* collide.
+	productions = mapper(decls, declToProdTuple);
+	return concatMaps(productions);
 }
 
 // TODO instead make this function return a Symbol?
@@ -114,6 +133,12 @@ tuple[Symbol, Production] declToProdTuple( ASTDecl c ) {
 Production constructToProd( ASTDecl c: ConstructDecl(_, _, _) ) {
 	name = id(c);
 	symbols = [construct(c)];
+	return \prod(name, symbols, {});
+}
+
+Production lexToProd( ASTDecl c: Lex(L(i, ses)) ) {
+	name = \lex(i);
+	symbols = symbol(ses);
 	return \prod(name, symbols, {});
 }
 
@@ -141,7 +166,6 @@ Symbol construct( ConstructDecl(id, pds, defs) ) {
 Symbol def( SyntaxDef(mods, sb) )
 	= symbol(sb);
 
-
 Symbol symbol( SyntaxTokens(sts) )
 	= \seq( symbol(sts) ); // see: http://tutor.rascal-mpl.org/Rascal/Rascal.html#/Rascal/Libraries/Prelude/ParseTree/Symbol/Symbol.html
 
@@ -157,6 +181,9 @@ and then then the symbol representing the literal "then".
 */
 list[Symbol] symbol( list[ASTSyntaxToken] sts )
 	= mapper( sts, syntaxToken );
+	
+list[Symbol] symbol( list[ASTSortExpr] ses )
+	= mapper( ses, sortExpr );	
 
 /*
 Convert a syntax-token to something which can be used in the further processing to a Rascal syntax description AST (data type Grammar).
@@ -164,7 +191,31 @@ Convert a syntax-token to something which can be used in the further processing 
 Symbol syntaxToken( Literal(s) )
 	= \lit(s);
 
-// TODO the rest of the syntax token alternatives
+// TODO finish 
+Symbol syntaxToken( TypeOrVar(se) )
+	= sortExpr(se);
+
+Symbol sortExpr( Sort(s) )
+	= sort(s);
+Symbol sortExpr( Star(se) )
+	= \iter-star( sortExpr(se) );
+Symbol sortExpr( Plus(se) )
+	= \iter( sortExpr(se) );
+Symbol sortExpr( CharacterClass(SimpleCharclass(rs)) ) {
+	l = mapper(rs, charRange);
+	return \char-class( mapper(rs, charRange) );
+}
+
+CharRange charRange( FromTo(f, t) )
+	         // we need the code point (ASCII) of the character.
+	         // charAt(...) returns the codepoint of the character at the given index.
+	= range( charAt(f, 0), charAt(t, 0) );
+
+CharRange charRange( Character(c) ) {
+	// TODO is this correct?
+	codepoint = charAt(c, 0); 
+	return range(codepoint, codepoint);
+}
 
 /*
 get the id of a declaration.
@@ -174,6 +225,10 @@ Symbol id( SortDecl(str i, list[ASTDecl] _) ) {
 }
 
 Symbol id( ConstructDecl(str i, list[ASTParamDecl] _, list[ASTDef] _) ) {
+	return sort(i);
+}
+
+Symbol id( Lex(L(i, _)) ) {
 	return sort(i);
 }
 
