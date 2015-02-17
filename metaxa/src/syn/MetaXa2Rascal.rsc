@@ -205,6 +205,15 @@ Symbol sortExpr( CharacterClass(SimpleCharclass(rs)) ) {
 	l = mapper(rs, charRange);
 	return \char-class( mapper(rs, charRange) );
 }
+// conditionals
+Symbol sortExpr( Follow(se1, se2) )
+	= \conditional( sortExpr(se1), {\follow( sortExpr(se2) )} ); // TODO correct, or should the arguments be switched?
+Symbol sortExpr( NotFollow(se1, se2) )
+	= \conditional( sortExpr(se1), {\not-follow( sortExpr(se2) )} );
+Symbol sortExpr( Precede(se1, se2) )
+	= \conditional( sortExpr(se1), {\precede( sortExpr(se2) )} );			
+Symbol sortExpr( NotPrecede(se1, se2) )
+	= \conditional( sortExpr(se1), {\not-precede( sortExpr(se2) )} );
 
 CharRange charRange( FromTo(f, t) )
 	         // we need the code point (ASCII) of the character.
