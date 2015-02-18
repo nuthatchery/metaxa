@@ -181,9 +181,9 @@ and then then the symbol representing the literal "then".
 */
 list[Symbol] symbol( list[ASTSyntaxToken] sts )
 	= mapper( sts, syntaxToken );
-	
+
 list[Symbol] symbol( list[ASTSortExpr] ses )
-	= mapper( ses, sortExpr );	
+	= mapper( ses, sortExpr );
 
 /*
 Convert a syntax-token to something which can be used in the further processing to a Rascal syntax description AST (data type Grammar).
@@ -191,7 +191,7 @@ Convert a syntax-token to something which can be used in the further processing 
 Symbol syntaxToken( Literal(s) )
 	= \lit(s);
 
-// TODO finish 
+// TODO finish
 Symbol syntaxToken( TypeOrVar(se) )
 	= sortExpr(se);
 
@@ -207,11 +207,11 @@ Symbol sortExpr( CharacterClass(SimpleCharclass(rs)) ) {
 }
 // conditionals
 Symbol sortExpr( Follow(se1, se2) )
-	= \conditional( sortExpr(se1), {\follow( sortExpr(se2) )} ); // TODO correct, or should the arguments be switched?
+	= \conditional( sortExpr(se1), {\follow( sortExpr(se2) )} );
 Symbol sortExpr( NotFollow(se1, se2) )
 	= \conditional( sortExpr(se1), {\not-follow( sortExpr(se2) )} );
 Symbol sortExpr( Precede(se1, se2) )
-	= \conditional( sortExpr(se1), {\precede( sortExpr(se2) )} );			
+	= \conditional( sortExpr(se1), {\precede( sortExpr(se2) )} );
 Symbol sortExpr( NotPrecede(se1, se2) )
 	= \conditional( sortExpr(se1), {\not-precede( sortExpr(se2) )} );
 
@@ -222,7 +222,7 @@ CharRange charRange( FromTo(f, t) )
 
 CharRange charRange( Character(c) ) {
 	// TODO is this correct?
-	codepoint = charAt(c, 0); 
+	codepoint = charAt(c, 0);
 	return range(codepoint, codepoint);
 }
 
