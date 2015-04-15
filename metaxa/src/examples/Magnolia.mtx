@@ -49,5 +49,66 @@ sort Program {
 			}
 		}
 	}
+}
 
+sort Expr {
+	construct Var(OperationName name) {
+		syntax { <name> }
+	}
+	
+Literal: IntegerLiteral
+	|  Literal: RealLiteral
+	|  Literal: StringLiteral
+	|  Literal: IntegerLiteral ":" Type
+	|  Literal: RealLiteral ":" Type
+	|  Literal: StringLiteral ":" Type
+	|  Tuple: "(" {Expr ","}* ")"
+	|  TypeExpr: ":" Type
+	|  Struct: Type "{" {InitSpec ","}* "}"
+	|  Apply: Fun "(" {Expr ","}* ")"
+	| Expect:	"\\expect" "(" StringConstant "," Expr ")"
+	|  IfThenElseExpr: "if" Expr "then" Expr "else" Expr "end"
+	|  Guard: "guard" Expr "by" Expr "end"
+	|  BlockExpr: "{" Stat* "}"
+	|  BlockExprSugar: "begin" "{" Stat* Expr "}"
+	>  DotOp: Expr "." Name
+	|  DotOp: Expr "." DecimalIntegerLiteral
+	|  IndexSugar: Expr "[" {Expr ","}* "]"
+	>  ListCons: "[" {Expr ","}* "]"
+	>  PreOpSugar: NEGOP Expr
+	|  PreOpSugar: BTNOT Expr
+	|  PreOpSugar: LGNOT Expr
+	
+	construct Apply(Fun fun, list[Expr] args) {
+	//
+	   sugar {
+	   left <Expr e1> <MULOP op> <Expr e2>
+	>  left <Expr e1> <ADDOP op> <Expr e2>
+	>  left <Expr e1> <SHFOP op> <Expr e2>
+	>  left <Expr e1> <RNGOP op> <Expr e2>
+	   } -> Apply(Fun(op), [e1, e2])
+	   
+	   
+	}
+	>  left BinOpSugar: Expr MULOP Expr
+	>  left BinOpSugar: Expr ADDOP Expr
+	>  left BinOpSugar: Expr SHFOP Expr
+	>  left BinOpSugar: Expr RNGOP Expr
+	> left (
+		 BinOpSugar: Expr CMPOP Expr
+	  |  InSugar: Expr INOP Expr
+	  |  NotInSugar: Expr NOTINOP Expr
+	  |  BinOpSugar: Expr EQUOP Expr
+	)
+	>  left BinOpSugar: Expr SUBST Expr
+	>  left BinOpSugar: Expr BTAND Expr
+	>  left BinOpSugar: Expr BTAND Expr
+	>  left BinOpSugar: Expr BTXOR Expr
+	>  left BinOpSugar: Expr BITOR Expr
+	>  left BinOpSugar: Expr LGAND Expr
+	>  left BinOpSugar: Expr LOGOR Expr
+	>  left BinOpSugar: Expr LGIMP Expr
+	>  left Recover: Expr "recover" Expr
+	>  Undefined: UNDERSCORE
+	;
 }
