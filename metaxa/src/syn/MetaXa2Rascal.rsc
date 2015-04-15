@@ -192,9 +192,16 @@ Symbol syntaxToken( Literal(s) )
 	= \lit(s);
 
 // TODO finish
-Symbol syntaxToken( TypeOrVar(se) )
-	= sortExpr(se);
+Symbol syntaxToken( TypeOrVar(se), Env env) {
+     // TypeOrVar(t) -> TypedVar(t, Anon())
+     // TypeOrVar(v) -> TypedVar(typeOf(v), v)
+     
+	 if(Sort(Name(/^[a-z]/)) := se) // TODO: ???
+	     return sort(lookup(se, env));
+	  else
+	    sortExpr(se);
 
+}
 Symbol sortExpr( Sort(s) )
 	= sort(s);
 Symbol sortExpr( Star(se) )
